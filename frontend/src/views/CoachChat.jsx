@@ -39,6 +39,7 @@ import { confirmSheet } from '../sheets.jsx'
 import Icon from '../components/Icon.jsx'
 import { glyphOf } from '../lib/glyphs.js'
 import LineChart from '../components/LineChart.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import { Button, Check, Switch, Section, Row, SelectRow } from '../components/ui.jsx'
 import '../coach.css'
 
@@ -67,10 +68,11 @@ export default function CoachChat() {
   // Not before the store has loaded: a cold start straight on #/coach would otherwise read an
   // empty state, decide there is no consent, and bounce a consenting user into the intake. Nor
   // before the server said for this session whether it has a Coach (lib/use-coach-gate.js).
+  // The Coach is a tab (components/TabBar.jsx): one that is not set up yet says so and how, rather
+  // than sending the tap back to Home without a word (CoachUnavailable below).
   useEffect(() => {
-    if (!storeReady || !gate.known) return
-    if (!ok) nav('/home', { replace: true })
-    else if (!ready) nav('/coach/intake', { replace: true })
+    if (!storeReady || !gate.known || !ok) return
+    if (!ready) nav('/coach/intake', { replace: true })
   }, [storeReady, gate.known, ok, ready])
 
   // A job that ends is either a proposal, "nothing to change", or a failure. The server tells
@@ -120,6 +122,7 @@ export default function CoachChat() {
 
   useEffect(() => { if (typeof endRef.current?.scrollIntoView === 'function') endRef.current.scrollIntoView({ block: 'end' }) }, [S.coach?.chat?.length, !!job, !!pending])
 
+  if (storeReady && gate.known && !ok) return <CoachUnavailable user={user} />
   if (!ready) return null
   const coach = S.coach || emptyCoach()
   const community = !!config?.coach?.community && !DEMO && !(MOBILE && coachMode === 'byok')
@@ -268,6 +271,27 @@ function Bubble({ role, kind, at, children }) {
     <div className={'bub' + cls}>{children}</div>
     {at && <div className="msg-t">{stamp(at)}</div>}
   </div>
+}
+
+// The Coach tab while there is no Coach to talk to yet: what is missing, and the one step that
+// fixes it for whoever is looking. The server's admin connects an AI account on the admin
+// dashboard (docs/AI_COACH.md); the phone app can bring its own key (CoachSetup); anyone else
+// asks their admin, and a guest signs in first.
+export function CoachUnavailable({ user }) {
+  const nav = useNavigate()
+  const head = <div className="hdr"><div><h1>{t('Coach')}</h1></div></div>
+  if (MOBILE && !user) return <div className="narrow">{head}
+    <EmptyState icon="sparkles" title={t('Set up the Coach')} text={t('On this phone the Coach can run on your own AI key, or on your openGym server once you connect to it.')}>
+      <Button variant="primary" onClick={() => nav('/coach/setup')}>{t('Set up the Coach')}</Button>
+    </EmptyState></div>
+  if (!user) return <div className="narrow">{head}
+    <EmptyState icon="sparkles" title={t('Sign in to use the Coach')} text={t('The Coach runs on your openGym server, so it needs a signed-in profile.')} /></div>
+  if (user.admin) return <div className="narrow">{head}
+    <EmptyState icon="sparkles" title={t('Connect an AI account')} text={t('The Coach needs an AI account to run on. In the admin dashboard, open the AI Coach card, switch it on, pick a provider, add its key or token and test it.')}>
+      <Button variant="primary" onClick={() => nav('/admin', { state: { section: 'coach' } })}>{t('Open the AI Coach setup')}</Button>
+    </EmptyState></div>
+  return <div className="narrow">{head}
+    <EmptyState icon="sparkles" title={t('The Coach is not switched on yet')} text={t('Your openGym server’s admin needs to connect an AI account before the Coach can answer. Ask them to switch it on.')} /></div>
 }
 
 function Message({ m, S, profile, openSheet }) {
