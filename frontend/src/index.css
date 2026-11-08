@@ -924,6 +924,36 @@ body.chips-dragging *{cursor:inherit}
 .measure-input{height:47px;background:var(--surface-2);border-radius:var(--r);display:flex;align-items:center;padding:0 12px;gap:6px}
 .measure-input .num{width:100%;min-width:0;background:transparent;border:0;outline:none;font-size:18px;font-weight:500;color:var(--label);padding:0}
 .measure-input i{font-style:normal;color:var(--label-3);font-size:var(--fs-footnote)}
+
+/* ------------------------------------------------------------- nutrition -- */
+/* views/Nutrition.jsx, components/GramsInput.jsx, views/NutritionTargets.jsx */
+.nut-day{margin:-6px 0 10px}
+.nut-day-t{font-size:var(--fs-headline);font-weight:600}
+.nut-day .iconbtn:disabled{opacity:.3}
+.nut-bars{display:flex;flex-direction:column;gap:8px}
+.nut-meal{margin-top:16px}
+.nut-meal-h{margin:0 2px 6px}
+.nut-meal .list{display:flex;flex-direction:column;gap:6px}
+.nut-entry,.nut-food-open{width:100%;text-align:start;background:var(--surface)}
+.nut-food{background:var(--surface)}
+.nut-food-open{display:flex;flex-direction:column;gap:1px;padding:0;background:transparent}
+.nut-star{color:var(--yellow);font-size:var(--fs-footnote);margin-inline-start:6px;vertical-align:-1px}
+.nut-preview{margin:12px 0;padding:12px 14px}
+.nut-preview-m{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font-size:var(--fs-footnote);color:var(--label-2)}
+.nut-preview-m b{color:var(--label);font-weight:600}
+.nut-form{margin-bottom:6px}
+.nut-serving>input{flex:1;min-width:0}
+.nut-serving>.measure-input{width:110px;flex:none}
+.nut-problems{margin-top:10px;color:var(--red);font-size:var(--fs-footnote);display:flex;flex-direction:column;gap:2px}
+.nut-target{width:120px;height:38px;flex:none}
+.nut-target .num{text-align:end}
+.grams-field{display:flex;flex-direction:column;gap:6px}
+.grams-field>span:first-child{font-size:var(--fs-footnote);color:var(--label-2);margin-inline-start:2px}
+.grams-input{height:52px;background:var(--surface-2);border-radius:var(--r);display:flex;align-items:center;padding:0 14px;gap:6px}
+.grams-input .num{width:100%;min-width:0;background:transparent;border:0;outline:none;font-size:22px;font-weight:600;color:var(--label);padding:0}
+.grams-input i{font-style:normal;color:var(--label-3)}
+.grams-chips{margin-top:8px;text-transform:none}
+.grams-chips .chip{text-transform:none}
 .measure-options{margin:12px 0 16px}
 .measure-select{margin-bottom:10px;background:var(--surface-2)}
 .measure-preview{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:11px;padding-top:10px;border-top:1px solid var(--sep);font-size:var(--fs-caption);color:var(--label-2)}

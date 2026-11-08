@@ -30,6 +30,7 @@ import { WrappedHomeCard } from '../components/WrappedEntry.jsx'
 import RecoveryHint from '../components/RecoveryHint.jsx'
 import { ChallengesCard } from '../components/Challenges.jsx'
 import { isOn } from '../lib/modules.js'
+import { dailyTotals, targetsOf } from '../lib/nutrition.js'
 
 // Home = what to do now + a quick glance. Deep charts & history live in Stats.
 export default function Home() {
@@ -261,6 +262,9 @@ export default function Home() {
       </>}
     </div>}
 
+    {/* Nutrition (docs/NUTRITION.md): today's calories against the target, one tap to log. */}
+    {on('nutrition') && <NutritionCard S={S} nav={nav} />}
+
     {/* The streak opens its calendar from its text (CardHead open); the weekly-sets line and the
         party banner are buttons of their own beside it, not inside a card that is a button. */}
     {on('motivation') ? <div className="card tap-host streak-card">
@@ -279,5 +283,21 @@ export default function Home() {
     </div>
       // Motivation off: no streak card, but the weekly sets line it carried keeps a card of its own.
       : S.homeMuscleSets === true && <div className="card wsets-solo"><WeeklySetsHomeLine S={S} onOpen={() => nav('/stats?section=lifts')} /></div>}
+  </div>
+}
+
+function NutritionCard({ S, nav }) {
+  const eaten = dailyTotals(S.foodLog, todayISO())
+  const target = targetsOf(S)
+  const left = Math.round(target.kcal - eaten.kcal)
+  return <div className="card nut-home">
+    <CardHead icon="apple" tint="var(--green)" title={t('Nutrition')} open={{ onClick: () => nav('/nutrition') }}
+      action={<Button size="sm" icon="plus" onClick={() => nav('/nutrition?add=1')}>{t('Log')}</Button>} />
+    <div className="row" style={{ gap: 8, alignItems: 'baseline' }}>
+      <div className="big">{fmtNum(Math.round(eaten.kcal))} <span className="muted" style={{ fontSize: 'var(--fs-callout)' }}>/ {fmtNum(target.kcal)} kcal</span></div>
+    </div>
+    <div className="small dim" style={{ marginTop: 3 }}>
+      {(left >= 0 ? t('{0} kcal left', fmtNum(left)) : t('{0} kcal over', fmtNum(-left))) + ' · ' + t('Protein {0} of {1} g', fmtNum(Math.round(eaten.protein)), fmtNum(target.protein))}
+    </div>
   </div>
 }

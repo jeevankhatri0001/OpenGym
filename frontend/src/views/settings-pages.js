@@ -37,6 +37,8 @@ export const PAGES = {
   'gym-edit': { title: 'Your gym', icon: 'mapPin', tint: 'var(--orange)', parent: 'gym' },
   // Seasonal themes (lib/seasonal.js), one section per theme.
   themes: { title: 'Seasonal themes', icon: 'pumpkin', tint: 'var(--orange)', parent: 'look', mod: 'seasonal' },
+  // Nutrition's daily targets (views/NutritionTargets.jsx, lib/nutrition.js).
+  nutrition: { title: 'Nutrition targets', icon: 'apple', tint: 'var(--green)', mod: 'nutrition', kw: 'nutrition targets goals diet calories kcal protein carbs carbohydrates fat fibre fiber macros food' },
   // The phone's health store, one page per platform (until 1.4.4 a section of Data & backup).
   'apple-health': { title: 'Apple Health', icon: 'heart', tint: 'var(--red)', parent: 'integrations', mod: 'health', kw: 'apple health healthkit heart rate weight scale watch sync workouts' },
   'health-connect': { title: 'Health Connect', icon: 'heart', tint: 'var(--red)', parent: 'integrations', mod: 'health', kw: 'health connect google fit samsung fitbit garmin heart rate weight scale watch sync workouts' },
@@ -45,7 +47,7 @@ export const PAGE_IDS = Object.keys(PAGES)
 
 // The root, top to bottom. Whether a row shows is pageVisible's call.
 // Modules first, on its own: what the app shows at all comes before how each part behaves.
-export const ROOT_GROUPS = [['modules'], ['workout', 'alerts', 'reminders'], ['plan', 'units', 'equipment'], ['look', 'coach', 'watch', 'zepp'], ['integrations', 'data', 'about']]
+export const ROOT_GROUPS = [['modules'], ['workout', 'alerts', 'reminders'], ['plan', 'units', 'equipment', 'nutrition'], ['look', 'coach', 'watch', 'zepp'], ['integrations', 'data', 'about']]
 
 /**
  * Whether a page exists for this device and profile. Reminders need a push server (signed in) or
@@ -93,6 +95,7 @@ const MODULE_KW = {
   motivation: 'motivation streak challenges badges trophies recap wrapped year share gamification',
   coach: 'ai coach llm assistant review suggestions',
   integrations: 'integrations webhook webhooks home assistant n8n mcp automation',
+  nutrition: 'nutrition food diet calories kcal macros protein carbs fat fibre meal eat log',
   seasonal: 'seasonal season halloween christmas advent calendar theme decoration',
 }
 export const SEARCH = [
@@ -178,6 +181,8 @@ export const SEARCH = [
   { page: 'look', title: 'Week and month recap', icon: 'chart', tint: 'var(--purple)', mod: 'motivation', kw: 'recap summary weekly monthly report your week your month card home share' },
   { page: 'look', title: 'Weekly sets on Home', icon: 'figureStrength', tint: 'var(--teal)', kw: 'weekly sets muscle volume range home card line' },
   { page: 'look', title: 'Monthly challenges', icon: 'target', tint: 'var(--orange)', mod: 'motivation', kw: 'challenge challenges monthly month goal goals badge badges trophy motivation' },
+  { page: 'nutrition', title: 'Calories', icon: 'apple', tint: 'var(--green)', mod: 'nutrition', kw: 'calories kcal energy daily target goal diet nutrition' },
+  { page: 'nutrition', title: 'Protein', icon: 'apple', tint: 'var(--green)', mod: 'nutrition', kw: 'protein macros daily target goal grams nutrition' },
   { page: 'look', title: 'Seasonal themes', icon: 'pumpkin', tint: 'var(--orange)', mod: 'seasonal', kw: 'seasonal season holiday halloween christmas advent calendar snow theme decoration' },
   // Seasonal themes
   { page: 'themes', title: 'Halloween', icon: 'pumpkin', tint: 'var(--orange)', kw: 'halloween seasonal theme spooky spider pumpkin bats witch october decoration', opts: ['Auto', 'On', 'Off'] },

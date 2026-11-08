@@ -10,7 +10,8 @@ import { copyText } from '../lib/clipboard.js'
 import { useUI } from '../store/useUI.js'
 import { activeGym, gymLabel, switchGym } from '../lib/gym-inventory.js'
 import { startTour, TUTORIALS, TUTORIAL_COPY, tutorialDone } from '../lib/tour.js'
-import { ACCENTS, ACCENT_NAMES, todayISO, localTZ, weekStartOf, MONDAY, SUNDAY, fmtPlate } from '../lib/format.js'
+import { ACCENTS, ACCENT_NAMES, todayISO, localTZ, weekStartOf, MONDAY, SUNDAY, fmtPlate, fmtNum } from '../lib/format.js'
+import { targetsOf } from '../lib/nutrition.js'
 import { inventoryFor, ownsPlates } from '../lib/plates.js'
 import { BAR_TYPES, ownBarDefault } from '../lib/bar.js'
 import { dumbbellsOf, ownsNoDumbbells } from '../lib/dumbbells.js'
@@ -68,6 +69,7 @@ import WatchSettingsPage from './WatchSettings.jsx'
 import IntegrationsPage from './Integrations.jsx'
 import ZeppSettingsPage from './ZeppSettings.jsx'
 import ModulesPage from './Modules.jsx'
+import NutritionTargetsPage from './NutritionTargets.jsx'
 import { isOn, presetOf } from '../lib/modules.js'
 import { presetCopy } from '../lib/modules-copy.js'
 import { reportSheet } from '../components/ReportSheet.jsx'
@@ -496,6 +498,7 @@ export default function Settings({ page = null, find = null, via = null, entryKe
     about: () => 'v' + __APP_VERSION__,
     watch: () => '',
     zepp: () => '',
+    nutrition: () => t('{0} kcal', fmtNum(targetsOf(S).kcal)),
   }
 
   const open = id => {
@@ -549,6 +552,7 @@ export default function Settings({ page = null, find = null, via = null, entryKe
 
   const pages = {
     modules: () => <ModulesPage />,
+    nutrition: () => <NutritionTargetsPage />,
     watch: () => <WatchSettingsPage />,
     integrations: () => <IntegrationsPage android={android} ios={ios} />,
     // The phone's health store (#200, #544): its switches, moved here from Data & backup in 1.4.4.

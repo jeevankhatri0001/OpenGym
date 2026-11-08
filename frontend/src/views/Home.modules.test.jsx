@@ -51,6 +51,18 @@ describe('Home follows the modules', () => {
     expect(host.querySelector('.week')).toBeTruthy()
   })
 
+  it('Nutrition: on with everything, gone with Just training or switched off', () => {
+    mountWith(undefined, { foodLog: [{ id: 'e1', d: today, name: 'Oats', grams: 50, meal: 'breakfast', loggedAt: 1, n: { kcal: 190, protein: 6.5, carbs: 33, fat: 3.5, fibre: 5 } }] })
+    expect(heads()).toContain('Nutrition')
+    expect(host.querySelector('.nut-home').textContent).toMatch(/190/)
+    mountWith(presetModules('training'))
+    expect(heads()).not.toContain('Nutrition')
+    mountWith({ nutrition: false })
+    expect(heads()).not.toContain('Nutrition')
+    mountWith({ body: false, nutrition: true })
+    expect(heads()).toContain('Nutrition')
+  })
+
   it('one module at a time, and back on brings it back', () => {
     mountWith({ body: false })
     expect(heads()).not.toContain('Body weight')
