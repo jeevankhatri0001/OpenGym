@@ -63,6 +63,14 @@ describe('Home follows the modules', () => {
     expect(heads()).toContain('Nutrition')
   })
 
+  it('every card that opens from its head keeps the tap area inside the card (.tap-host)', () => {
+    mountWith(undefined, { foodLog: [] })
+    const mains = [...host.querySelectorAll('.tap-main')]
+    expect(mains.length).toBeGreaterThan(0)
+    // a .tap-main's cover is position:absolute; outside a .tap-host it spreads over the page
+    for (const m of mains) expect(m.closest('.tap-host'), m.textContent).toBeTruthy()
+  })
+
   it('one module at a time, and back on brings it back', () => {
     mountWith({ body: false })
     expect(heads()).not.toContain('Body weight')

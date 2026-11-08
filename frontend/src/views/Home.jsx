@@ -290,7 +290,9 @@ function NutritionCard({ S, nav }) {
   const eaten = dailyTotals(S.foodLog, todayISO())
   const target = targetsOf(S)
   const left = Math.round(target.kcal - eaten.kcal)
-  return <div className="card nut-home">
+  // tap-host: the head's tap area (.tap-main::after) covers this card. Without it the cover spread
+  // over the whole page and every tap on Home, the Settings gear too, opened Nutrition.
+  return <div className="card tap-host nut-home">
     <CardHead icon="apple" tint="var(--green)" title={t('Nutrition')} open={{ onClick: () => nav('/nutrition') }}
       action={<Button size="sm" icon="plus" onClick={() => nav('/nutrition?add=1')}>{t('Log')}</Button>} />
     <div className="row" style={{ gap: 8, alignItems: 'baseline' }}>
