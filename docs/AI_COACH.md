@@ -256,6 +256,37 @@ shapes, so a provider that closes every object for a strict schema (#804) can st
 The running session is sent the way a question sends it (`today`): exercise ids, targets and the
 sets' numbers, no notes, no media, and never the form videos of a set.
 
+### A check-in after each set
+
+**Coach check-in after each set** (workout ⋯ → Workout settings, off by default) asks how a work
+set felt as soon as you tick it, the way a coach beside the rack would. It needs no AI and no
+account: the answer comes from local rules (`frontend/src/lib/set-checkin.js`), instantly and
+offline, while the rest timer keeps running.
+
+You tap one of **Easy**, **Solid**, **Hard** or **All I had**, and optionally **Form broke down**
+or **Something hurt**. The sheet answers with one line of coaching and, when it suggests a change,
+the new numbers for the sets still to do:
+
+| Answer | Suggestion |
+| --- | --- |
+| Easy, reps hit | +5 %, rounded up to the next weight the gym can load (bodyweight: +2 reps) |
+| Solid | no change |
+| Hard | no change, or −5 % when the reps fell two or more short |
+| All I had | −5 %, or −10 % when reps were missed (bodyweight: aim for the reps just done) |
+| Form broke down | −10 % (bodyweight: 2 reps fewer) |
+| Something hurt | stop the exercise; **Ask the Coach** opens with *It hurts* picked, when the Coach is set up |
+
+**Apply** changes the open work sets of that exercise only, the same way an `adapt` weight or reps
+change does: logged sets and the routine stay as they are, cuts round down to the plates and
+never go under the bar, warm-ups are re-aimed. **Keep as planned** changes nothing. Either way the
+answer is saved on the set as its effort (RIR, or RPE when the profile logs RPE), so it shows in
+the stats and the fatigue model; a set already rated keeps its rating and opens on the matching
+answer. **Skip** saves nothing.
+
+The check-in opens only for a work set ticked by hand, for the first time, in a live session.
+Warm-ups, holds, cardio, a set ticked on the watch, a saved workout being edited and the set that
+ends the workout (its own sheet opens then) never ask.
+
 ### Warm-ups and programmes
 
 A review can now also:
