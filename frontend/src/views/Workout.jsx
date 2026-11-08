@@ -51,6 +51,7 @@ import { useCoachGate } from '../lib/use-coach-gate.js'
 // Opened in the same tick as the menu closes, like every other sheet from that menu: a sheet that
 // opened a moment later (after a dynamic import) took the menu's history entry with it on close.
 import { workoutCoachSheet } from '../components/WorkoutCoachSheet.jsx'
+import { setCheckinSheet } from '../components/SetCheckinSheet.jsx'
 import { hasConsent } from '../lib/coach.js'
 import { sessionNoProg, setSessionNoProg, setEntryNoProg, joinSessionNoProg } from '../lib/session-noprog.js'
 import { glyphOf } from '../lib/glyphs.js'
@@ -1979,7 +1980,7 @@ function ActiveWorkout() {
   // `quiet`: the hold that ticks this set has just ended with the chime and its buzz pattern
   // (store/useUI.js). The tick's own beep would sound over the chime's first note and clip it,
   // and its short buzz would cut the pattern off: a new vibrate call replaces the running one.
-  const toggle = (idx, i, side, { quiet = false, onFocusProgress } = {}) => {
+  const toggle = (idx, i, side, { quiet = false, onFocusProgress, checkin = false } = {}) => {
     // Ticking a set ends the typing in that row: drop the keyboard before the rest timer, the
     // effort sheet or the next exercise moves in. WebKit keeps the input focused across the
     // button tap, and a focused input with its keyboard gone is what leaves the tab bar
@@ -2039,6 +2040,14 @@ function ActiveWorkout() {
     if (fresh && checked && fresh.entries[idx]) {
       const progress = setProgressHighWater(fresh.entries[idx], progressHighWater.current[idx] || 0)
       progressHighWater.current[idx] = progress.highWater
+
+      // The set check-in (S.setCheckin, components/SetCheckinSheet.jsx): a work set ticked by hand,
+      // for the first time, asks how it felt. Not on the watch's ticks, not on warm-ups, not on a
+      // hold or cardio, and not when the workout just ended (its own sheet is opening).
+      const doneRow = fresh.entries[idx].sets[i]
+      if (checkin && progress.isNew && !workoutDone && useStore.getState().S.setCheckin && m === 'reps' && doneRow?.done && !isWarmupRow(doneRow)) {
+        setCheckinSheet(idx, i, { canAskCoach: coachGate.ok && hasConsent(useStore.getState().S) })
+      }
 
       const freshUnits = supersetUnits(fresh.entries)
       const freshUnit = freshUnits.find(u => u.includes(idx))
@@ -2123,6 +2132,7 @@ function ActiveWorkout() {
     const st = exView(live, live.active?.entries?.[idx]?.id)
     const e = st.active?.entries?.[idx]
     const row = side ? e?.sets?.[i]?.sides?.[side] : e?.sets?.[i]
+    opts = { ...opts, checkin: true }
     if (editing || !row || row.done || modeAt(idx) !== 'reps') return toggle(idx, i, side, opts)
     const last = lastEntryFor(st, e.id, e.rid)
     const odd = oddValues(row, bestsFor(st.workouts, e.id), {

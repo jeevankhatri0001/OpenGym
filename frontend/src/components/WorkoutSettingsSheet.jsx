@@ -66,6 +66,9 @@ export function WorkoutSettings({ close }) {
           options={[{ value: 'none', label: t('Off') }, { value: 'rir', label: t('RIR') }, { value: 'rpe', label: t('RPE') }]}
           value={effortOf(S)} onChange={v => update(s => { s.effort = v; delete s.showRir })} />
       </Row>
+      <Row icon="sparkles" iconTint="var(--orange)" title={t('Coach check-in after each set')} subtitle={t('Asks how a set felt and suggests the next weight')}>
+        <Switch aria-label={t('Coach check-in after each set')} checked={!!S.setCheckin} onChange={v => update(s => { s.setCheckin = v })} />
+      </Row>
       <Row icon="swap" iconTint="var(--indigo)" title={t('Swipe actions')} subtitle={t('Sets, routines and the loop: left removes, right copies')}>
         <Switch aria-label={t('Swipe actions')} checked={workoutControls(S).swipeSets}
           onChange={v => update(s => { s.wc = { ...workoutControls(s), swipeSets: v } })} />

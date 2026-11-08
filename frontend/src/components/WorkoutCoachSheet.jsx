@@ -107,11 +107,11 @@ export function AdaptProposal({ p, onDone }) {
 }
 
 /** The sheet: the question, the wait, the answer. */
-export default function WorkoutCoachSheet({ entryIdx, close }) {
+export default function WorkoutCoachSheet({ entryIdx, reason: firstReason = null, close }) {
   const S = useStore(s => s.S)
   const entry = S.active?.entries?.[entryIdx]
   const { job, pending, last, lastError, refresh } = useCoachStatus(true)
-  const [reason, setReason] = useState(null)
+  const [reason, setReason] = useState(ADAPT_REASONS.includes(firstReason) ? firstReason : null)
   const [text, setText] = useState('')
   const [sent, setSent] = useState(null)        // the job this sheet started
   const [busy, setBusy] = useState(false)
@@ -172,7 +172,7 @@ export default function WorkoutCoachSheet({ entryIdx, close }) {
   </div>
 }
 
-/** Opens the sheet for the exercise at `entryIdx` of the running session. */
-export function workoutCoachSheet(entryIdx) {
-  useUI.getState().openSheet(close => <WorkoutCoachSheet entryIdx={entryIdx} close={close} />)
+/** Opens the sheet for the exercise at `entryIdx` of the running session; `reason` preselects one. */
+export function workoutCoachSheet(entryIdx, { reason = null } = {}) {
+  useUI.getState().openSheet(close => <WorkoutCoachSheet entryIdx={entryIdx} reason={reason} close={close} />)
 }
