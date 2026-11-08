@@ -100,6 +100,10 @@ export const DEF = {
   // Body measurements (#82, #699): one check-in per day; canonical cm, kg or % according to
   // the field's unit (lib/measurements.js); merged like weigh-ins (lib/sync-merge.js).
   measurements: [], measurementEnabled: null, customMeasurements: [],
+  // Nutrition (docs/NUTRITION.md, lib/nutrition.js): foods per 100 g and the log of what was
+  // eaten, each merged by id and field (lib/sync-merge.js). The targets (`nutritionTargets`) are
+  // not here on purpose: absent means the defaults, and each one set is stamped on its own.
+  foods: [], foodLog: [],
   queue: null,   // a planner's floating week (lib/queue.js) — via the API, or by this rotation feature (below)
   // The in-app rotation's reusable definition — { id, sequence, label } (lib/rotation.js). Never
   // a live queue: it only ever feeds `queue`, and `queue.rotationId` says the pass is managed here.

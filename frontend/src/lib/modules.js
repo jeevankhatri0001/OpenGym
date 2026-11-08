@@ -12,6 +12,9 @@
 //     notifications, widget fields) and pauses what it would send (health sync, the watch, the
 //     webhooks, scheduled Coach reviews). It never deletes anything: switched back on, it is all
 //     there, and the paused syncs catch up.
+//   - Nutrition came after Modules, so a missing key cannot mean "on" for it the way it does for
+//     the rest: someone who chose Just training would suddenly see a food log. Until a choice is
+//     made it follows the others, on only when every other module is on (the Everything preset).
 //   - The Coach and the MCP server read the data whatever the modules say: hiding is about the
 //     screen, the data is the same (docs/MODULES.md).
 //   - S.modules syncs per key (lib/sync-merge.js PER_KEY and api/sync-stamps.js), so switching
@@ -38,6 +41,8 @@ export const MODULES = [
     desc: 'Weigh-ins, measurements, progress photos and your weight goal.' },
   { id: 'health', group: 'body', icon: 'heart', tint: 'var(--red)', title: 'Health',
     desc: 'Apple Health or Health Connect, heart rate and recovery tips.' },
+  { id: 'nutrition', group: 'body', icon: 'apple', tint: 'var(--green)', title: 'Nutrition',
+    desc: 'Log what you eat and see calories and macros against your daily targets.' },
   { id: 'motivation', group: 'extras', icon: 'flame', tint: 'var(--orange)', title: 'Motivation',
     desc: 'Streaks, challenges, badges, recaps and your year in openGym.' },
   { id: 'coach', group: 'extras', icon: 'sparkles', tint: 'var(--green)', title: 'AI Coach',
@@ -73,6 +78,8 @@ export function isOn(S, id) {
   if (typeof v === 'boolean') return v
   // Before 1.4.4 the check-in had its own switch in Look & Home; it decides until Modules does.
   if (id === 'checkin') return S?.checkIn !== false
+  // Nutrition (after 1.4.4) is new to every profile: on only for those who have everything on.
+  if (id === 'nutrition') return MODULE_IDS.every(o => o === 'nutrition' || isOn(S, o))
   return true
 }
 
@@ -113,7 +120,11 @@ export function applyPreset(s, presetId) {
 }
 export function setModule(s, id, on) {
   if (!MODULE[id]) return
-  s.modules = { ...(isMap(s.modules) ? s.modules : {}), [id]: !!on }
+  const m = isMap(s.modules) ? s.modules : {}
+  // Nutrition follows the others until chosen; pin it as it is now, so switching Seasonal off
+  // doesn't quietly take the food log away with it.
+  const pin = id !== 'nutrition' && typeof m.nutrition !== 'boolean' ? { nutrition: isOn(s, 'nutrition') } : {}
+  s.modules = { ...m, ...pin, [id]: !!on }
 }
 
 /** The modules a change from `S` to `next` (a modules map) switches off. */

@@ -104,6 +104,8 @@ const P = {
   grid: <><rect x="4" y="4" width="6.5" height="6.5" rx="1.6" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" /></>,
   folder: <path d="M3.6 7.4a2 2 0 0 1 2-2h3.1l2 2.4h6.7a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2H5.6a2 2 0 0 1-2-2Z" />,
   globe: <><circle cx="12" cy="12" r="8.2" /><path d="M3.8 12h16.4M12 3.8c2.1 2.2 3.2 5.1 3.2 8.2s-1.1 6-3.2 8.2c-2.1-2.2-3.2-5.1-3.2-8.2s1.1-6 3.2-8.2Z" /></>,
+  // Nutrition (lib/nutrition.js): an apple with its stem and leaf.
+  apple: <><path d="M12 8.2c-1.5-1.1-4.6-1.5-6.3.5-2.2 2.6-1.2 8 1.1 10.3 1.4 1.4 3 1.4 4.2.7h2c1.2.7 2.8.7 4.2-.7 2.3-2.3 3.3-7.7 1.1-10.3-1.7-2-4.8-1.6-6.3-.5Z" /><path d="M12 8.2c0-1.6.4-3 1.4-4M13.2 5.6c1.2-1.2 2.9-1.4 3.9-1-.3 1.4-1.7 2.6-3.9 2.4" /></>,
   // Seasonal themes (lib/seasonal.js): two halves of a pumpkin and its stem.
   pumpkin: <><path d="M12 7.4c-1.6-1.2-4.9-1.4-6.8.6-2.4 2.6-2.4 8.4 0 11 1.9 2 5.2 1.8 6.8.6 1.6 1.2 4.9 1.4 6.8-.6 2.4-2.6 2.4-8.4 0-11-1.9-2-5.2-1.8-6.8-.6Z" /><path d="M12 7.4c-1.4 2.2-1.4 10 0 12.2M12 7.4c.1-1.6.6-2.9 1.8-3.8" /></>,
   // ... and a present with its bow, for Christmas.

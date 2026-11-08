@@ -63,11 +63,11 @@ describe('the Modules page', () => {
   it('a switch writes that one module, and the preset turns Custom', () => {
     mount()
     act(() => sw('Seasonal themes').click())
-    expect(mocks.S.modules).toEqual({ seasonal: false })
+    expect(mocks.S.modules).toEqual({ nutrition: true, seasonal: false })   // Nutrition pinned as it was
     mount()
     expect(sw('Seasonal themes').getAttribute('aria-checked')).toBe('false')
     expect(row('Start from').querySelector('.lrow-v').textContent).toBe('Custom')
-    expect(host.textContent).toContain('11 of 12 modules on.')
+    expect(host.textContent).toContain('12 of 13 modules on.')
     act(() => sw('Seasonal themes').click())
     expect(isOn(mocks.S, 'seasonal')).toBe(true)
   })
