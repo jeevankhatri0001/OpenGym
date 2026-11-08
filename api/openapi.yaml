@@ -4279,6 +4279,66 @@ components:
         effort:
           oneOf: [{ type: string, enum: [none, rir, rpe] }, { type: 'null' }]
         equipProfiles: { type: array, items: { type: object, additionalProperties: true } }
+        foods:
+          type: array
+          description: >-
+            Nutrition's food library (docs/NUTRITION.md). Values are per 100 g. Merged like custom
+            exercises: union by id, field by field, removals kept in `deleted.foods`.
+          items:
+            type: object
+            properties:
+              id: { type: string, description: 'Own id, or "seed:<slug>" for a starter food.' }
+              name: { type: string, maxLength: 80 }
+              kcal: { type: number, minimum: 0, maximum: 900 }
+              protein: { type: number, minimum: 0, maximum: 100 }
+              carbs: { type: number, minimum: 0, maximum: 100 }
+              fat: { type: number, minimum: 0, maximum: 100 }
+              fibre: { type: number, minimum: 0, maximum: 100 }
+              servings:
+                type: array
+                maxItems: 8
+                items: { type: object, properties: { label: { type: string }, g: { type: number } } }
+              isCustom: { type: boolean }
+              favourite: { type: boolean }
+              seed: { type: boolean, description: A starter food (approximate USDA values). }
+            additionalProperties: true
+        foodLog:
+          type: array
+          description: >-
+            What was eaten. `n` holds the nutrients of `grams` as they were when logged, so editing
+            or deleting the food later never changes the entry. `d` is the local day it counts on.
+            Removals are kept in `deleted.foodLog`.
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              foodId: { type: string, nullable: true }
+              name: { type: string }
+              d: { type: string, format: date }
+              grams: { type: number, exclusiveMinimum: 0, maximum: 5000 }
+              meal: { type: string, enum: [breakfast, lunch, dinner, snack] }
+              loggedAt: { type: number, description: ms since epoch }
+              source: { type: string, enum: [manual, scale, barcode] }
+              n:
+                type: object
+                properties:
+                  kcal: { type: number }
+                  protein: { type: number }
+                  carbs: { type: number }
+                  fat: { type: number }
+                  fibre: { type: number }
+            additionalProperties: true
+        nutritionTargets:
+          type: object
+          description: >-
+            Daily targets, merged per key. A missing or null value is the default (2200 kcal, 140 g
+            protein, 250 g carbs, 70 g fat, 30 g fibre).
+          properties:
+            kcal: { type: number, nullable: true, maximum: 10000 }
+            protein: { type: number, nullable: true, maximum: 500 }
+            carbs: { type: number, nullable: true, maximum: 1500 }
+            fat: { type: number, nullable: true, maximum: 500 }
+            fibre: { type: number, nullable: true, maximum: 150 }
         settings:
           type: object
           description: >-

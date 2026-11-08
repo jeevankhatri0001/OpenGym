@@ -372,7 +372,7 @@ archive.
 
 `api/coach/payload.js` is built as an allowlist: every field is copied in **by name**, nothing
 is spread and nothing is passed through, so a field added to the state blob next year cannot
-ride along by accident. The five categories it can send — the same list the consent screen
+ride along by accident. The categories it can send — the same list the consent screen
 renders from, so the screen cannot drift from the payload — are:
 
 | Category | What it covers |
@@ -382,6 +382,7 @@ renders from, so the screen cannot drift from the payload — are:
 | `bodyweight` | weigh-ins in the window and your goal weight |
 | `profile` | the intake answers you gave the Coach, including any limitations |
 | `cohort` (optional) | only with comparison on and your own opt-in: anonymous medians from the other people sharing — never their data, and never yours to them beyond the same medians |
+| `nutrition` | only with the Nutrition module on and a consent of version 3 or later: daily calorie, protein, carb, fat and fibre totals for the last 14 days, and the targets. Never the foods, their names or single entries ([NUTRITION.md](NUTRITION.md#what-leaves-the-device)) |
 | `prefs` | unit, language, effort scale |
 
 ### Asking before it goes

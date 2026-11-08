@@ -4750,6 +4750,181 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <span class="p-desc"></span>
   </div>
   <div class="prow">
+    <span class="p-name">foods</span>
+    <span class="p-type">object[]</span>
+    <span class="p-desc">Nutrition's food library (docs/NUTRITION.md). Values are per 100 g. Merged like custom exercises: union by id, field by field, removals kept in <code>deleted.foods</code>.</span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].id</span>
+    <span class="p-type">string</span>
+    <span class="p-desc">Own id, or &quot;seed:&lt;slug&gt;&quot; for a starter food.</span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].name</span>
+    <span class="p-type">string <span class="p-hint">(&le; 80 chars)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].kcal</span>
+    <span class="p-type">number <span class="p-hint">(0&ndash;900)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].protein</span>
+    <span class="p-type">number <span class="p-hint">(0&ndash;100)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].carbs</span>
+    <span class="p-type">number <span class="p-hint">(0&ndash;100)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].fat</span>
+    <span class="p-type">number <span class="p-hint">(0&ndash;100)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].fibre</span>
+    <span class="p-type">number <span class="p-hint">(0&ndash;100)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].servings</span>
+    <span class="p-type">object[]</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].servings[].label</span>
+    <span class="p-type">string</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].servings[].g</span>
+    <span class="p-type">number</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].isCustom</span>
+    <span class="p-type">boolean</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].favourite</span>
+    <span class="p-type">boolean</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foods[].seed</span>
+    <span class="p-type">boolean</span>
+    <span class="p-desc">A starter food (approximate USDA values).</span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog</span>
+    <span class="p-type">object[]</span>
+    <span class="p-desc">What was eaten. <code>n</code> holds the nutrients of <code>grams</code> as they were when logged, so editing or deleting the food later never changes the entry. <code>d</code> is the local day it counts on. Removals are kept in <code>deleted.foodLog</code>.</span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].id</span>
+    <span class="p-type">string</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].foodId</span>
+    <span class="p-type">string</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].name</span>
+    <span class="p-type">string</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].d</span>
+    <span class="p-type">string <span class="p-hint">(date)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].grams</span>
+    <span class="p-type">number <span class="p-hint">(&ndash;5000)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].meal</span>
+    <span class="p-type">&quot;breakfast&quot; | &quot;lunch&quot; | &quot;dinner&quot; | &quot;snack&quot;</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].loggedAt</span>
+    <span class="p-type">number</span>
+    <span class="p-desc">ms since epoch</span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].source</span>
+    <span class="p-type">&quot;manual&quot; | &quot;scale&quot; | &quot;barcode&quot;</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].n</span>
+    <span class="p-type">object</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].n.kcal</span>
+    <span class="p-type">number</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].n.protein</span>
+    <span class="p-type">number</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].n.carbs</span>
+    <span class="p-type">number</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].n.fat</span>
+    <span class="p-type">number</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">foodLog[].n.fibre</span>
+    <span class="p-type">number</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">nutritionTargets</span>
+    <span class="p-type">object</span>
+    <span class="p-desc">Daily targets, merged per key. A missing or null value is the default (2200 kcal, 140 g protein, 250 g carbs, 70 g fat, 30 g fibre).</span>
+  </div>
+  <div class="prow">
+    <span class="p-name">nutritionTargets.kcal</span>
+    <span class="p-type">number <span class="p-hint">(&ndash;10000)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">nutritionTargets.protein</span>
+    <span class="p-type">number <span class="p-hint">(&ndash;500)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">nutritionTargets.carbs</span>
+    <span class="p-type">number <span class="p-hint">(&ndash;1500)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">nutritionTargets.fat</span>
+    <span class="p-type">number <span class="p-hint">(&ndash;500)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">nutritionTargets.fibre</span>
+    <span class="p-type">number <span class="p-hint">(&ndash;150)</span></span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
     <span class="p-name">settings</span>
     <span class="p-type">object</span>
     <span class="p-desc">Catch-all note: the remaining top-level keys (sound, keepAwake, gifSize, targetW, autoBackup, …) are flat settings values like the ones above.</span>

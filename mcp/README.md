@@ -67,7 +67,7 @@ the server's stderr.
 
 ## Tools
 
-Ten read-only tools, and one that writes:
+Thirteen read-only tools, and two that write:
 
 | Tool | What it answers |
 |---|---|
@@ -81,7 +81,11 @@ Ten read-only tools, and one that writes:
 | `estimate_1rm` | All-time best 1RM for an exercise + the trend, or a PR table across all exercises. |
 | `muscle_balance` | Which muscles I've trained this week/month/all-time, ranked + which I've neglected. |
 | `get_programme` | My programmes (routines as a block of weeks with %1RM / RPE targets), and which week of the running one I'm in. |
+| `get_nutrition_day` | What did I eat on a day: each entry by meal with its grams and nutrients, the day's totals, the targets and what is left. |
+| `get_nutrition_range` | Daily nutrition totals from one date to another (up to 92 days), with the average over the days that have anything logged. "How is my protein this week?" |
+| `search_foods` | The food library by name, with nutrients per 100 g and servings. The ids it returns are what `log_food` takes. |
 | `log_workout` | *Writes.* "I did dumbbell curls, 12 kg, 12/12/10" → a logged session in your history, on every device. Needs pairing: [Logging workouts](#logging-workouts). |
+| `log_food` | *Writes.* "I had 200 g of chicken breast for lunch" → an entry in your nutrition log, on every device. Needs pairing: [Logging food](#logging-food). |
 
 `get_routine` and `preview_session` answer two different questions, and confusing them is the
 easiest way for a coach to give wrong advice. `get_routine` reports what the routine *stores*.
@@ -165,6 +169,25 @@ Things to know about that token:
 - Complete a routine's session. A logged workout is freestyle: it counts in history, stats,
   1RM, PRs and the muscle map, and like any freestyle session it can inform a routine that has
   no history of its own, but it does not tick off a planned day or a coach week's session.
+
+## Logging food
+
+`log_food` adds one entry to the nutrition log ([docs/NUTRITION.md](../docs/NUTRITION.md)), saved
+through your openGym server with the same pairing and the same read, add, PUT and retry-on-409 as
+`log_workout`.
+
+- Name the food by its id from `search_foods`, or by name. A name that matches several foods or
+  none saves nothing and comes back with what to ask. For a food that is not in the library, pass
+  `new_food` with its label values per 100 g: it is added to your foods and logged.
+- Grams are required. Portions turn into grams with the food's own servings ("2 eggs" with
+  "1 egg" = 50 g is 100 g); without a serving the LLM should ask rather than guess.
+- `meal` defaults by the time of day, `date` to today (never the future).
+- The same food, grams, meal and day within ten minutes is one request sent twice, not a second
+  portion: it logs once. `allow_duplicate` says otherwise. `dry_run` previews without saving.
+- At most 20 entries an hour.
+
+The nutrition read tools answer whether or not the Nutrition module is on in the app, like every
+other tool here; `module_on: false` says the app does not show it.
 
 ## How it reuses the training logic
 

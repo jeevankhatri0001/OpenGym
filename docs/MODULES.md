@@ -24,6 +24,7 @@ cannot be switched off.
 | **Watch** | The Apple Watch and Zepp OS pages. A paired Apple Watch, Wear OS, Zepp or Garmin watch is told there is nothing to show, as with the watch's own off switch. It stays paired. |
 | **Gym check-in** | The check-in card on Home, the check-in screen with your membership codes, NFC stickers. Your cards stay. Before 1.4.4 this had its own switch in Look & Home, which still counts until you set the module. |
 | **Body** | The body weight card on Home, the Body part of Stats (weight chart, goal, measurements, progress photos) and its Weight 30d figure, the weigh-in before a workout, the measurements and photos screens, the weight block of the widgets, the body weight settings. |
+| **Nutrition** | The Nutrition tab, its Home card, Settings → Nutrition targets and their search hits. Your foods, log and targets stay. Until you choose, this one is on only when every other module is on (see below). See [NUTRITION.md](NUTRITION.md). |
 | **Health** | The Apple Health and Health Connect pages and cards, the Works with list, live heart rate during a workout, recovery tips on Home. Syncing with the health app pauses (see below). |
 | **Motivation** | The streak card on Home and in Stats, monthly challenges and the trophy shelf, the week and month recap, Your year (its Home card, its Stats rows and its December notification), Share as image, the streak on the watch. With it off, Weekly sets on Home gets a small card of its own. |
 | **AI Coach** | The Coach button on Plan, Ask the Coach in a workout, the Coach screens, its Settings row and Integrations card, scheduled reviews. |
@@ -40,7 +41,7 @@ The row at the top picks a preset for every module at once:
 
 - **Just training**: Effort, Plates and warm-ups, Watch. Everything else off.
 - **Training and body**: Just training plus Strength levels, Body and Health.
-- **Everything**: every module on.
+- **Everything**: every module on, Nutrition included.
 - **Custom** is what the row says once you flip a switch away from a preset.
 
 New profiles are asked once, on the first card after setup (the one that offers the tour). Everything
@@ -74,12 +75,27 @@ module is on) and the MCP server keep reading everything they read before, body 
 when Body is off. That is a deliberate choice: hiding a part of the screen should not change the
 advice you get or what your own assistant can answer.
 
+**Nutrition is the one exception for the Coach.** Its daily food totals go to the Coach only while
+the Nutrition module is on (and only after a consent that named nutrition). Food is more personal
+than training, and someone who switched it off should not find it in a prompt. The MCP server
+follows the general rule: its nutrition tools answer either way and say `module_on: false` when the
+app does not show it. See [NUTRITION.md](NUTRITION.md#what-leaves-the-device).
+
+### Nutrition's default
+
+Nutrition came after Modules. For every other module a missing choice means on, so profiles from
+before keep what they had; for Nutrition that would have put a food log in front of someone who
+chose **Just training**. So until a choice is made, Nutrition follows the others: it is on only
+when every other module is on. The first time any other switch changes, Nutrition's current state
+is saved as a choice of its own, so turning off Seasonal themes later does not hide a food log
+someone was using.
+
 ## For developers
 
 - `frontend/src/lib/modules.js` is the one source of truth: ids, groups, presets, `isOn(S, id)`,
   `presetOf`, `applyPreset`, `setModule`. Views call `isOn`, never `S.modules` directly. Its words
   are in `lib/modules-copy.js`, inside `t()` so the string checks see them.
-- `S.modules` is `{ [id]: boolean }` with only the choices made; a missing key is on. It is a
+- `S.modules` is `{ [id]: boolean }` with only the choices made; a missing key is on (Nutrition aside, see above). It is a
   per-key field in `lib/sync-merge.js` and `api/sync-stamps.js` (`PER_KEY`).
 - Central gates rather than checks in every view where a helper already decides: `effortOf`
   (history.js), `warmupAutoOf` (warmup-ramp.js), `activeSeason` (seasonal.js), `challengesOn`,
