@@ -7,6 +7,7 @@ import {
   entriesByMeal, foodProblems, makeLogEntry, nutrientsFor, progress, recentFoodIds, regram, round1,
   searchFoods, targetsOf, weeklySeries, dailySeries,
 } from '../lib/nutrition.js'
+import { STARTER_VARIES, shouldSeed, starterFoodsToAdd } from '../lib/nutrition-seed.js'
 import { fmtDate, fmtNum, todayISO, uid } from '../lib/format.js'
 import { t } from '../lib/i18n.js'
 import Icon from '../components/Icon.jsx'
@@ -196,6 +197,11 @@ function FoodForm({ id, init, onSaved, close }) {
   const copy = PROBLEM()
   return <>
     <h3>{id ? t('Edit food') : t('New food')}</h3>
+    {was?.seed && <div className="muted small nut-seed-note" style={{ marginBottom: 10 }}>
+      {STARTER_VARIES.includes(was.id)
+        ? t('A starter food with approximate values. This one differs a lot between brands, so copy the numbers from your packaging.')
+        : t('A starter food with approximate values from USDA FoodData Central. Change them to match what you buy.')}
+    </div>}
     <TextField value={f.name} maxLength={NAME_MAX} placeholder={t('Name')} aria-label={t('Name')} onChange={e => set('name', e.target.value)} />
     <div className="muted small" style={{ margin: '12px 2px 8px' }}>{t('Per 100 g, as on the label.')}</div>
     <div className="measure-form nut-form">
@@ -277,6 +283,13 @@ export default function Nutrition() {
   const byMeal = entriesByMeal(S.foodLog, d)
   const meals = mealCopy()
 
+  // The starter foods (lib/nutrition-seed.js) go in on the first visit, so Add food is not empty.
+  // Never again once they are there or any of them was deleted.
+  const seedNow = shouldSeed(S)
+  useEffect(() => {
+    if (seedNow) update(s => { if (shouldSeed(s)) s.foods = [...(s.foods || []), ...starterFoodsToAdd(s)] })
+  }, [seedNow])
+
   // /nutrition?add=1 (the Home card's Log button) opens Add food once.
   useEffect(() => {
     if (params.get('add') !== '1') return
@@ -336,6 +349,12 @@ export function NutritionFoods() {
   const S = useStore(s => s.S)
   const [q, setQ] = useState('')
   const foods = searchFoods(S.foods, q, 1000)
+  const missing = starterFoodsToAdd(S, { restoreDeleted: true }).length
+  const addStarters = () => {
+    let n = 0
+    update(s => { const add = starterFoodsToAdd(s, { restoreDeleted: true }); n = add.length; s.foods = [...(s.foods || []), ...add] })
+    toast(t(n === 1 ? '{0} starter food added' : '{0} starter foods added', n))
+  }
   return <div className="narrow">
     <Header title={t('Foods')} sub={t('{0} foods', (S.foods || []).length)} back="/nutrition" backLabel={t('Nutrition')}>
       <Button size="sm" icon="plus" onClick={() => foodFormSheet(null, { name: q.trim() })}>{t('New')}</Button>
@@ -346,7 +365,7 @@ export function NutritionFoods() {
       <div className="lrow nut-food">
         <button type="button" className="lrow-m nut-food-open" onClick={() => foodFormSheet(f.id)}>
           <span className="lrow-t">{f.name}</span>
-          <span className="lrow-s">{t('{0} kcal', kcal(f.kcal))} · {t('P {0}', grams(f.protein))} · {t('C {0}', grams(f.carbs))} · {t('F {0}', grams(f.fat))} · {t('per 100 g')}</span>
+          <span className="lrow-s">{t('{0} kcal', kcal(f.kcal))} · {t('P {0}', grams(f.protein))} · {t('C {0}', grams(f.carbs))} · {t('F {0}', grams(f.fat))} · {t('per 100 g')}{f.seed && !NUTRIENTS.some(k => f._f?.[k]) ? ' · ' + t('approximate') : ''}</span>
         </button>
         <button type="button" className="iconbtn" onClick={() => toggleFavourite(f)} aria-pressed={!!f.favourite}
           aria-label={f.favourite ? t('Remove from favourites') : t('Add to favourites')} style={f.favourite ? { color: 'var(--yellow)' } : undefined}>
@@ -355,6 +374,11 @@ export function NutritionFoods() {
       </div>
     </SwipeRow>)}</div>
       : <div className="empty small">{q.trim() ? t('No food matches “{0}”.', q.trim()) : t('No foods yet. Add the foods you eat, with their values per 100 g from the label.')}</div>}
+    {!q.trim() && missing > 0 && <>
+      <div style={{ height: 12 }} />
+      <Button variant="ghost" icon="plus" onClick={addStarters}>{t(missing === 1 ? 'Add {0} starter food' : 'Add {0} starter foods', missing)}</Button>
+      <div className="small dim" style={{ marginTop: 4, textAlign: 'center' }}>{t('Common foods with approximate USDA values. Edit or delete any of them.')}</div>
+    </>}
   </div>
 }
 

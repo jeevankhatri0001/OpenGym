@@ -238,3 +238,40 @@ describe('history and targets', () => {
     expect(S().nutritionTargets).toEqual({ kcal: null, protein: null, carbs: null, fat: null, fibre: null })
   })
 })
+
+describe('starter foods', () => {
+  it('go in on the first visit, once, and a deleted one does not come back', () => {
+    seed({ foods: [] })
+    render(<Nutrition />)
+    expect(S().foods).toHaveLength(21)
+    expect(S().foods.every(f => f.seed && f.id.startsWith('seed:'))).toBe(true)
+    useStore.getState().update(s => { s.foods = s.foods.filter(f => f.id !== 'seed:paneer') })
+    render(<Nutrition />)
+    expect(S().foods).toHaveLength(20)
+    useStore.getState().update(s => { s.foods = [] })     // all deleted: the list stays empty
+    render(<Nutrition />)
+    expect(S().foods).toHaveLength(0)
+  })
+
+  it('a profile that already has foods gets none by itself; the library offers them, deleted ones too', () => {
+    seed({ deleted: { foods: { 'seed:paneer': 5 } } })
+    render(<Nutrition />)
+    expect(S().foods).toHaveLength(2)
+    const lib = render(<NutritionFoods />, '/nutrition/foods')
+    expect(lib.textContent).toContain('Add 21 starter foods')
+    click(lib, 'Add 21 starter foods')
+    expect(S().foods).toHaveLength(23)
+    expect(S().foods.some(f => f.id === 'seed:paneer')).toBe(true)
+    expect(lib.textContent).not.toContain('starter foods')
+    expect(lib.textContent).toMatch(/Paneer.*approximate/)
+  })
+
+  it('a starter food says its values are approximate, and which to check against the packaging', () => {
+    seed({ foods: [] })
+    render(<Nutrition />)
+    act(() => foodFormSheet('seed:whey'))
+    expect(topSheet().textContent).toContain('copy the numbers from your packaging')
+    act(() => foodFormSheet('seed:banana'))
+    expect(topSheet().textContent).toContain('approximate values from USDA FoodData Central')
+  })
+})
