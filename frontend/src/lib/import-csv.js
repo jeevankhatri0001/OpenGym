@@ -217,6 +217,9 @@ const ALIAS_EX = {
   'calf raise': '1372', 'standing calf raise': '1372', 'seated calf raise': '0088',
   'lateral raise': '0334', 'side raise': '0334', 'reverse fly': '0348', 'rear delt fly': '0348',
   'bicep curl': '0294', 'biceps curl': '0294', 'dumbbell curl': '0294',
+  // "EZ-bar Biceps Curl": every word of it is also in "ez barbell deadlift with biceps curl",
+  // which the bag-of-words match took over the plain curl.
+  'ez barbell biceps curl': '0447', 'ez barbell bicep curl': '0447',
   'preacher curl': '0070', 'barbell curl': '0031',
   'tricep pushdown': '0241', 'triceps pushdown': '0241', pushdown: '0241',
   skullcrusher: '0060', 'skull crusher': '0060', 'lying triceps extension': '0061',
@@ -644,6 +647,20 @@ export function parseWorkoutRows(rows, map, source, { unit = 'kg', customEx = []
     delete map.durationSec
   }
 
+  // Exports that name each row's kind as NORMAL_SET, WARMUP_SET, DROP_SET, FAILURE_SET, TOP_SET or,
+  // for a set logged per side, LEFT_SET then RIGHT_SET (header Title,Date,Duration,Exercise,
+  // Superset id,Weight,Reps,Distance,Time,Set Type). There "Duration" is the whole workout's
+  // length ("02:00:14") on every row and "Time" the set's own; a drop is a row of its own under its
+  // set, the way ours writes one. Read from the rows rather than the header: the header alone is
+  // too generic to tell.
+  const typeCol = map.setType
+  const typed = !own && typeCol !== undefined && rows.slice(1, 200).some(r => /^(NORMAL|LEFT|RIGHT|DROP|WARMUP|FAILURE|TOP)_SET$/.test(String(r[typeCol] ?? '').trim()))
+  if (typed) {
+    const head = (rows[0] || []).map(norm)
+    const dur = head.indexOf('duration'), time = head.indexOf('time')
+    if (dur !== -1 && time !== -1) { map.workoutDuration = dur; map.time = time }
+  }
+
   const resolved = new Map()          // exact title -> dataset id | null, resolved once
   const prior = new Map()             // exercise name -> the user's own custom exercise for it
   const byDate = new Map()           // session key -> the workout being built (see `sessionKey` below)
@@ -660,7 +677,7 @@ export function parseWorkoutRows(rows, map, source, { unit = 'kg', customEx = []
   }
   const sessionKeyOf = (when, r) => map.session !== undefined
     ? when.d + '|' + cell(r, 'session')
-    : (source === 'Strong' || source === 'Hevy' || own) && when.t != null
+    : (source === 'Strong' || source === 'Hevy' || own || typed) && when.t != null
     ? when.d + '|' + when.t + '|' + (cell(r, 'workoutName') || '')
     : when.d
 
@@ -781,7 +798,7 @@ export function parseWorkoutRows(rows, map, source, { unit = 'kg', customEx = []
         : { w, r: reps || 0, done: true, u: rowUnit, ...(warmup ? { phase: 'warmup' } : {}) }
     // A "failure" set type (Hevy's CSV writes one) is the app's set taken to failure; not on
     // cardio, which has no effort to read it as.
-    if (!warmup && !isCardio && (/^(f|fail|failure)$/i.test(String(cell(r, 'setType') || '').trim()) || order === 'f')) set.failure = true
+    if (!warmup && !isCardio && (/^(f|fail|failure|failure_set)$/i.test(String(cell(r, 'setType') || '').trim()) || order === 'f')) set.failure = true
     // Timed holds have no effort field. Weighted reps can carry RIR or RPE; cardio can carry
     // RPE (not RIR) so the fatigue estimate can use the exported session effort. A set is kept
     // on one scale, so a file carrying both columns is read as RIR for reps work.
@@ -818,16 +835,17 @@ export function parseWorkoutRows(rows, map, source, { unit = 'kg', customEx = []
     if (!day.ex.has(id)) day.ex.set(id, [])
     const list = day.ex.get(id)
     const prev = list[list.length - 1]
-    const side = own ? cell(r, 'side').toUpperCase() : ''
+    const kind = typed ? cell(r, 'setType').toUpperCase() : ''
+    const side = own ? cell(r, 'side').toUpperCase() : kind === 'LEFT_SET' ? 'L' : kind === 'RIGHT_SET' ? 'R' : ''
     const setNo = cell(r, 'setNo')
     // A drop is a row of its own in our file, under the set it belongs to (and its side).
-    if (own && /^drop$/i.test(cell(r, 'setType')) && prev && !isCardio && !timed) {
+    if (((own && /^drop$/i.test(cell(r, 'setType'))) || kind === 'DROP_SET') && prev && !isCardio && !timed) {
       const into = (side === 'L' || side === 'R') && prev.sides ? prev.sides[side] : prev
       into.type = 'dropset'
       into.drops = [...(into.drops || []), { w, r: reps || 0 }]
       continue
     }
-    if (own && (side === 'L' || side === 'R') && !isCardio && !timed) {
+    if ((own || typed) && (side === 'L' || side === 'R') && !isCardio && !timed) {
       const half = { w, r: reps || 0, done: true, ...(set.rir != null ? { rir: set.rir } : {}), ...(set.rpe != null ? { rpe: set.rpe } : {}) }
       // The other side of the set the previous row started: same set number, side not yet filled.
       if (prev && prev._sides && prev._no === setNo && !prev._sides.includes(side)) {
@@ -907,7 +925,12 @@ export function parseWorkoutRows(rows, map, source, { unit = 'kg', customEx = []
       })
       const mx = Math.max(0, ...conv2.filter(s => !isWarmupRow(s)).map(s => s.w || 0))
       const note = (day.notes.get(id) || []).join(' · ').slice(0, 280)
-      return { id, sets: conv2, topW: mx || null, ...(day.sg.has(id) ? { sg: day.sg.get(id) } : {}), ...(note ? { note } : {}) }
+      // Logged per side (every work set has an L and an R): the setup says so, in `target` where a
+      // workout finished in the app keeps it (finish-workout.js), so Save as routine and Repeat
+      // plan it per side (history.js isPerSide).
+      const work = conv2.filter(s => !isWarmupRow(s))
+      const perSide = work.length > 0 && work.every(s => s.sides)
+      return { id, sets: conv2, topW: mx || null, ...(perSide ? { target: { side: true } } : {}), ...(day.sg.has(id) ? { sg: day.sg.get(id) } : {}), ...(note ? { note } : {}) }
     })
     // A superset is exercises next to each other; one left without a neighbour sharing its
     // tag is not a superset (the same rule history.js's cleanupSg applies).
