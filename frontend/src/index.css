@@ -633,6 +633,11 @@ h4.sec{
 }
 .iconbtn .tab-dot{top:5px;right:5px;box-shadow:0 0 0 2px var(--bg)}
 #tabbar button.start{margin-top:-24px}
+/* Seven tabs (Nutrition and the Coach both on): a little narrower type so "Nutrition" and
+   "Exercises" fit a 320 px phone without wrapping. */
+#tabbar.many{padding-inline:2px}
+#tabbar.many button{font-size:9.5px;letter-spacing:-.01em;min-width:0}
+#tabbar.many button>span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #tabbar button.start .cir{
   width:52px;height:52px;border-radius:50%;background:var(--acc);color:var(--on-acc);
   display:flex;align-items:center;justify-content:center;position:relative;

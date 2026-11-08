@@ -36,12 +36,14 @@ afterEach(() => {
 })
 
 const tabs = () => [...host.querySelectorAll('#tabbar button')]
+// Start by what it is, not where: it moves to stay in the middle as module tabs come and go.
+const startBtn = () => host.querySelector('#tabbar button[data-tour="start"]')
 
 describe('the tab bar across a store write', () => {
   it('keeps the very same buttons instead of rebuilding them every tick', () => {
     act(() => { root.render(<TabBar onStart={() => {}} />) })
     const before = tabs()
-    expect(before).toHaveLength(6)   // Nutrition's tab too: a default profile has every module on
+    expect(before).toHaveLength(7)   // Nutrition's and the Coach's tabs too: a default profile has every module on
 
     // What a rest does once a second: S is replaced, so everything reading it re-renders.
     act(() => { useStore.getState().update(s => { s.restSec = 91 }, false) })
@@ -55,10 +57,10 @@ describe('the tab bar across a store write', () => {
     act(() => { root.render(<TabBar onStart={() => {}} />) })
     expect(tabs()[0].className).toBe('on')
     expect(tabs()[1].className).toBe('')
-    expect(tabs()[2].className).toBe('start')
+    expect(startBtn().className).toBe('start')
 
     act(() => { useStore.getState().update(s => { s.active = { id: 'a', entries: [], cur: 0 } }, false) })
-    expect(tabs()[2].className).toBe('start rec')
+    expect(startBtn().className).toBe('start rec')
     expect(tabs()[0].className).toBe('on')
   })
 })
@@ -90,12 +92,13 @@ describe('the tab icons and labels', () => {
   const label = el => el.querySelector('span:last-child').textContent
   it('labels every tab and uses one icon per concept', () => {
     act(() => { root.render(<TabBar onStart={() => {}} />) })
-    expect(tabs().map(icon)).toEqual(['house', 'calendar', 'play', 'apple', 'chart', 'dumbbell'])
-    expect(tabs().map(label)).toEqual(['Home', 'Plan', 'Start', 'Nutrition', 'Stats', 'Exercises'])
+    // Start in the middle: three tabs either side
+    expect(tabs().map(icon)).toEqual(['house', 'calendar', 'apple', 'play', 'sparkles', 'chart', 'dumbbell'])
+    expect(tabs().map(label)).toEqual(['Home', 'Plan', 'Nutrition', 'Start', 'Coach', 'Stats', 'Exercises'])
 
     act(() => { useStore.getState().update(s => { s.active = { id: 'a', entries: [], cur: 0 } }, false) })
-    expect(icon(tabs()[2])).toBe('play')
-    expect(label(tabs()[2])).toBe('Resume')
+    expect(icon(startBtn())).toBe('play')
+    expect(label(startBtn())).toBe('Resume')
   })
 
   it('Nutrition is a tab while its module is on, lit on its own pages, gone when switched off', () => {
@@ -104,7 +107,19 @@ describe('the tab icons and labels', () => {
     expect(tabs().find(b => label(b) === 'Nutrition').className).toBe('on')
     expect(tabs().find(b => label(b) === 'Home').className).toBe('')
     act(() => { useStore.getState().update(s => { s.modules = { nutrition: false } }, false) })
+    expect(tabs().map(label)).toEqual(['Home', 'Plan', 'Start', 'Coach', 'Stats', 'Exercises'])
+    act(() => { useStore.getState().update(s => { s.modules = { nutrition: false, coach: false } }, false) })
     expect(tabs().map(label)).toEqual(['Home', 'Plan', 'Start', 'Stats', 'Exercises'])
+  })
+
+  it('the Coach is a tab while its module is on, lit on its intake and setup too', () => {
+    where.loc = { pathname: '/coach/intake' }
+    act(() => { root.render(<TabBar onStart={() => {}} />) })
+    expect(tabs().find(b => label(b) === 'Coach').className).toBe('on')
+    expect(host.querySelector('#tabbar').className).toBe('many')
+    act(() => { useStore.getState().update(s => { s.modules = { coach: false } }, false) })
+    expect(tabs().some(b => label(b) === 'Coach')).toBe(false)
+    expect(host.querySelector('#tabbar').className).toBe('')
   })
 
   it('shows a minimized session’s running time, still named Resume', () => {
@@ -113,16 +128,16 @@ describe('the tab icons and labels', () => {
       vi.setSystemTime(new Date(2026, 9, 5, 18, 0, 0))
       act(() => { useStore.getState().update(s => { s.active = { id: 'a', entries: [], cur: 0, start: Date.now() - 754_000 } }, false) })
       act(() => { root.render(<TabBar onStart={() => {}} />) })
-      const start = tabs()[2]
+      const start = startBtn()
       expect(label(start)).toBe('12:34')
       expect(start.getAttribute('aria-label')).toBe('Resume')
       act(() => { vi.advanceTimersByTime(2000) })
       expect(label(start)).toBe('12:36')
-      expect(tabs()[2]).toBe(start)   // the same button, only its text ticks
+      expect(startBtn()).toBe(start)   // the same button, only its text ticks
 
       // a past workout being edited has no clock running
       act(() => { useStore.getState().update(s => { s.active.editingWorkoutId = 'w1' }, false) })
-      expect(label(tabs()[2])).toBe('Edit workout')
+      expect(label(startBtn())).toBe('Edit workout')
     } finally { vi.useRealTimers() }
   })
 })

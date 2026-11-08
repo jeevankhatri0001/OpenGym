@@ -66,7 +66,9 @@
 .ob-hint{text-align:center;font-size:var(--fs-footnote);color:var(--label-3);margin-top:8px}
 
 /* ---------- chat ---------- */
-.chat{padding-bottom:calc(40px + var(--composer-extra,0px))}
+/* The chat is a tab: the composer rides above the tab bar (--tabbar-h), so the last message
+   clears both. */
+.chat{--tabbar-h:calc(58px + var(--sab));padding-bottom:calc(40px + var(--tabbar-h) + var(--composer-extra,0px))}
 .chat-hdr{
   display:flex;align-items:center;gap:10px;
   /* Pinned like a messenger's title bar: it eats the app shell's top padding so the blur
@@ -157,8 +159,8 @@
 
 /* composer */
 .composer{
-  position:fixed;left:0;right:0;bottom:0;z-index:40;
-  padding:8px var(--pad) calc(10px + var(--sab));
+  position:fixed;left:0;right:0;bottom:calc(58px + var(--sab));z-index:40;
+  padding:8px var(--pad) 8px;
   background:var(--bg);background:color-mix(in srgb,var(--bg) 88%,transparent);
   -webkit-backdrop-filter:saturate(180%) blur(12px);backdrop-filter:saturate(180%) blur(12px)
 }

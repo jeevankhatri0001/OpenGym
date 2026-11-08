@@ -54,10 +54,15 @@ export default function TabBar({ onStart }) {
     nav('/workout')
   }
 
+  // Nutrition and the Coach each have a tab while their module is on, one either side of Start so
+  // it stays in the middle: Home, Plan, Nutrition | Start | Coach, Stats, Exercises.
+  const food = isOn(S, 'nutrition'), coach = isOn(S, 'coach')
   return (
-    <nav id="tabbar">
+    <nav id="tabbar" className={food && coach ? 'many' : undefined}>
       <Tab active={on('home')} icon="house" label={t('Home')} dot={trouble} onClick={() => switchTab('/home')} tour="tab-home" />
       <Tab active={on('plan')} icon="calendar" label={t('Plan')} onClick={() => switchTab('/plan')} tour="tab-plan" />
+      {/* Nutrition (docs/NUTRITION.md); its Foods and History pages light it too (/nutrition/...). */}
+      {food && <Tab active={on('nutrition')} icon="apple" label={t('Nutrition')} onClick={() => switchTab('/nutrition')} tour="tab-nutrition" />}
       {/* On the workout screen itself there is nothing to resume, so the button reads as the
           tab it is and stays lit (#29); anywhere else it brings you back to the exercise you
           were on — the marker is kept in S.active.cur and never moves on its own (#21). The
@@ -71,9 +76,8 @@ export default function TabBar({ onStart }) {
         {running ? <span className="tab-time"><Elapsed start={S.active.start} /></span>
           : <span>{S.active ? (cur === 'workout' ? t('Workout') : S.active.editingWorkoutId ? t('Edit workout') : t('Resume')) : t('Start')}</span>}
       </button>
-      {/* Nutrition (docs/NUTRITION.md) is a tab of its own while its module is on; its Foods and
-          History pages light it too (/nutrition/...). */}
-      {isOn(S, 'nutrition') && <Tab active={on('nutrition')} icon="apple" label={t('Nutrition')} onClick={() => switchTab('/nutrition')} tour="tab-nutrition" />}
+      {/* The Coach's chat (views/CoachChat.jsx); its intake and setup light it too (/coach/...). */}
+      {coach && <Tab active={on('coach')} icon="sparkles" label={t('Coach')} onClick={() => switchTab('/coach')} tour="tab-coach" />}
       <Tab active={on('stats')} icon="chart" label={t('Stats')} onClick={() => switchTab('/stats')} tour="tab-stats" />
       <Tab active={on('library')} icon="dumbbell" label={t('Exercises')} onClick={() => switchTab('/library')} tour="tab-library" />
     </nav>

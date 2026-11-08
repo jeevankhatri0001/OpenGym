@@ -293,9 +293,10 @@ function Shell() {
     document.body.classList.toggle('no-tabbar', inWorkout)
     return () => document.body.classList.remove('no-tabbar')
   }, [inWorkout])
-  // The chat owns the bottom of the screen as well: its composer sits where the tabs would be.
-  // The first-launch card has no tabs either: they changed the route behind it.
-  const noTabs = inWorkout || loc.pathname === '/coach' || needsMobileOnboarding || permSteps
+  // The Coach's chat is a tab of its own (components/TabBar.jsx), so the tabs stay and its composer
+  // sits just above them (coach.css). The first-launch card has no tabs: they changed the route
+  // behind it.
+  const noTabs = inWorkout || needsMobileOnboarding || permSteps
 
   const authed = user || isGuest
   // The first setup is through (sign-in or "Use on this device", and the phone's permission
