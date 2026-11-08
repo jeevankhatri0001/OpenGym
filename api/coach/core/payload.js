@@ -14,6 +14,7 @@ import { glyphStr } from './glyphs.js';
 import { LIBRARY, LIB_BY_ID, libraryHas, libraryName, librarySlice, swapSlice, isStretch, MAX_LIBRARY, ownsNoDumbbells } from './library.js';
 import { muscleLoad, gymOf, challengesOf } from './context.js';
 import { nutritionOut } from './nutrition.js';
+import { cleanCompete, weeksOut } from './compete.js';
 
 export const CONTRACT = 1;
 // Bounds from FR-22. A review reads a training block, not a training career: more history
@@ -114,7 +115,9 @@ function cleanProfile(profile) {
     limitations: text(profile.limitations, PROFILE_TEXT_MAX.limitations),
     likes: text(profile.likes, PROFILE_TEXT_MAX.likes),
     dislikes: text(profile.dislikes, PROFILE_TEXT_MAX.dislikes),
-    notes: text(profile.notes, PROFILE_TEXT_MAX.notes)
+    notes: text(profile.notes, PROFILE_TEXT_MAX.notes),
+    // A competitor's show, body and food (core/compete.js), only under that goal.
+    ...(profile.goal === 'compete' && profile.compete ? { compete: cleanCompete(profile.compete) } : {})
   };
 }
 
@@ -627,6 +630,8 @@ export function build(S, opts = {}) {
     coachProfile: profile && typeof profile === 'object' ? cleanProfile(profile) : null,
     plan: cleanPlan(S, now)
   };
+  // How far out the show is, worked out here rather than by the model from two dates.
+  if (p.coachProfile?.compete?.showDate) p.coachProfile.compete.weeksOut = weeksOut(p.coachProfile.compete.showDate, p.meta.today);
   // The newer picture (core/context.js): weekly sets and recovery per muscle, the active gym's
   // loading, this month's challenges. Each only when there is something in it; a debrief reads
   // one session and gets none of it.
@@ -701,6 +706,12 @@ export function build(S, opts = {}) {
     p.aggregates = aggregates(S, workouts);
     const today = cleanToday(opts.today);
     if (today) p.today = today;
+    // The weight trend of the last four weeks: a question about a diet or a stall needs it as much
+    // as a review does (the consent's "bodyweight" category already covers it). Only with weigh-ins.
+    const since = new Date(now);
+    since.setDate(since.getDate() - 28);
+    const series = weighIns(S, iso(since), null);
+    if (series.length || num(S.targetW) !== undefined) p.bodyweight = { goal: num(S.targetW) ?? null, ...dailyOf(S), series };
   } else if (opts.kind === 'adapt') {
     // An exercise in the workout running now, and why it needs a rethink: pain, a busy rack, a
     // short day, feeling great. The session as it stands (each entry with its index, so a change

@@ -9,6 +9,7 @@ Design a complete plan from `coachProfile` (their intake answers) and, if presen
 - Only exercises from `library`. Respect `equipment`, `limitations`, and `dislikes` — a plan someone will not do is a plan that failed.
 - If `history.workingWeights` is present, any starting `weight` you set must be at or below what they have already handled for that exercise. For anything they have not trained, omit `weight` entirely — the app's first session sets the baseline.
 - 1–7 routines, each 3–12 exercises, compound work before accessories.
+- **A competitor** (`coachProfile.goal` is `compete`): build for their division's judging and phase (see "Competitors" below the rules), and say in `summary` which phase the plan is for and what it brings up.
 
 ## Output
 

@@ -14,7 +14,7 @@
 
 import { EXIDX, canonicalExId } from './exercises.js'
 import { modeOf, isBw, isPerSide, cleanupSg } from './history.js'
-import { uid, todayISO, DAYN } from './format.js'
+import { uid, todayISO, DAYN, fmtDate, fmtNum } from './format.js'
 import { mergePlan } from './plan-share.js'
 import { deleteRoutine } from './routines.js'
 import { POLICIES, POLICY_NAME, POLICY_DESC } from './progression.js'
@@ -404,12 +404,30 @@ export function defaultTrainingDays(count) {
 }
 
 /** The questionnaire, as the lines the chat shows back to the user. */
-export function profileLines(p) {
+// A competitor's answers (lib/coach-compete.js), in the intake bubble.
+function competeLines(c, unit) {
+  const out = []
+  const division = { classic: t('Classic Physique'), mensphysique: t('Men’s Physique'), bodybuilding: t('Bodybuilding'), other: t('Another division') }[c.division]
+  if (division) out.push([division, c.federation].filter(Boolean).join(' · '))
+  out.push(c.showDate ? t('Show on {0}', fmtDate(c.showDate, true, true)) : t('No show date yet'))
+  const body = [c.heightCm != null && c.heightCm + ' cm', c.weight != null && fmtNum(c.weight) + ' ' + (unit === 'lb' ? 'lb' : 'kg'), c.age != null && t('{0} years old', c.age), c.bodyFat != null && t('about {0}% body fat', c.bodyFat)].filter(Boolean)
+  if (body.length) out.push(body.join(' · '))
+  if (c.trainingYears != null) out.push(t('{0} years of training', fmtNum(c.trainingYears)))
+  const diet = { omni: t('I eat meat and fish'), egg: t('Vegetarian with eggs'), veg: t('Vegetarian'), vegan: t('Vegan') }[c.diet]
+  if (diet || c.meals) out.push([diet, c.meals && t('{0} meals a day', c.meals)].filter(Boolean).join(' · '))
+  if (c.foodNotes) out.push(t('Food: {0}', c.foodNotes))
+  const posing = { never: t('Never practised'), practised: t('Practised a bit'), competed: t('Competed before') }[c.posing]
+  if (posing) out.push(t('Posing: {0}', posing))
+  return out
+}
+
+export function profileLines(p, unit = 'kg') {
   if (!p) return []
-  const goal = { strength: 'Get stronger', muscle: 'Build muscle', general: 'General fitness', fatloss: 'Lose fat', endurance: 'Endurance' }[p.goal]
+  const goal = { strength: 'Get stronger', muscle: 'Build muscle', general: 'General fitness', fatloss: 'Lose fat', endurance: 'Endurance', compete: 'Compete in bodybuilding' }[p.goal]
   const exp = { new: 'New to lifting', returning: 'Coming back after a break', regular: 'Training regularly' }[p.experience]
   const lines = []
   if (goal) lines.push(t(goal))
+  if (p.goal === 'compete' && p.compete) lines.push(...competeLines(p.compete, unit))
   if (exp) lines.push(t(exp))
   if (p.daysPerWeek) lines.push(tn('1 day a week', '{0} days a week', p.daysPerWeek))
   if (p.sessionMin) lines.push(t('{0} min per session', p.sessionMin))

@@ -613,3 +613,54 @@ describe('CoachIntake — the editor behind ?edit=1', () => {
     expect(mocks.S.coach.chat.map(m => m.kind)).toEqual(['text', 'intake'])
   })
 })
+
+describe('CoachIntake — a competitor', () => {
+  const consented = () => { mocks.S.coach = { consent: { agreedAt: '2026-11-01T00:00:00Z', version: CONSENT_VERSION }, chat: [] } }
+  const field = label => host.querySelector(`input[aria-label="${label}"]`)
+
+  it('asks about the show, the body and the food, and sends them with the plan request', async () => {
+    consented()
+    mocks.S.bodyweight = [{ d: '2026-11-07', w: 78.4 }]
+    mount()
+    tap('.ob-choice', 'Compete in bodybuilding')
+    cont()
+    expect(eyebrow()).toBe('The show')
+    expect(footBtn().disabled).toBe(true)                      // a division is the one thing it needs
+    tap('.ob-choice', 'Classic Physique')
+    typeIn(field('Federation (optional)'), 'A natural federation')
+    tap('.chip', 'Practised a bit')
+    cont()
+    expect(eyebrow()).toBe('You')
+    expect(field('Body weight').value).toBe('78.4')            // from the last weigh-in
+    expect(footBtn().disabled).toBe(true)                      // height still missing
+    typeIn(field('Height'), '175')
+    typeIn(field('Age'), '24')
+    cont()
+    expect(eyebrow()).toBe('Food')
+    tap('.ob-choice', 'Vegetarian with eggs')
+    tap('.ob-day', '4')
+    cont()
+    walkTo('Almost there')
+    cont()
+    await settle()
+    const sent = vi.mocked(requestPlan).mock.calls[0][0]
+    expect(sent.goal).toBe('compete')
+    expect(sent.compete).toMatchObject({ division: 'classic', federation: 'A natural federation', posing: 'practised', heightCm: 175, weight: 78.4, age: 24, diet: 'egg', meals: 4, showDate: null })
+    expect(mocks.S.coach.profile.compete.division).toBe('classic')
+  })
+
+  it('another goal never sees those screens, and keeps no competitor answers', async () => {
+    consented()
+    mocks.S.coach.profile = { goal: 'compete', compete: { division: 'classic' } }   // changed their mind
+    mocks.search = 'edit=1'
+    mount()
+    tap('.ob-choice', 'Build muscle')
+    cont()
+    expect(eyebrow()).toBe('Experience')
+    walkTo('Almost there')
+    cont()
+    await settle()
+    expect(mocks.S.coach.profile.goal).toBe('muscle')
+    expect(mocks.S.coach.profile.compete).toBeUndefined()
+  })
+})

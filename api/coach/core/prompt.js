@@ -22,7 +22,10 @@ export function buildPromptParts(kind, payload, repair) {
   // plan format to follow at all, and a request like "swap the leverage machine" came back as
   // a review-style change list the plan validator can only reject (#471).
   const rules = task === 'refine' ? PROMPTS.create + '\n\n---\n\n' + PROMPTS.refine : PROMPTS[task];
-  const system = PROMPTS.common + '\n\n---\n\n' + rules;
+  // A competitor's prep rules (prompts/compete.md) only for a competitor: everyone else's prompt
+  // stays the size it was.
+  const compete = payload?.coachProfile?.goal === 'compete' ? '\n\n---\n\n' + PROMPTS.compete : '';
+  const system = PROMPTS.common + compete + '\n\n---\n\n' + rules;
   // Compact JSON, not pretty-printed: the indentation was ~30% of the payload's tokens and
   // a model reads either just as well.
   let user = '## Payload\n\n```json\n' + JSON.stringify(payload) + '\n```\n';

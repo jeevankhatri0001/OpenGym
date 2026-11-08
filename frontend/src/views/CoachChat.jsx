@@ -272,7 +272,7 @@ function Bubble({ role, kind, at, children }) {
 
 function Message({ m, S, profile, openSheet }) {
   if (m.kind === 'intake') {
-    const lines = profileLines(profile)
+    const lines = profileLines(profile, S.unit)
     return <Bubble role="user" at={m.at}>
       {t('Here is what I am working with:')}
       <ul>{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>

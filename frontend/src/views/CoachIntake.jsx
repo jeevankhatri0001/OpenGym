@@ -23,7 +23,10 @@ import { useCoachGate } from '../lib/use-coach-gate.js'
 import { MOBILE } from '../lib/mobile.js'
 import { activeProfile } from '../lib/equipment.js'
 import Icon from '../components/Icon.jsx'
-import { Button, TextArea } from '../components/ui.jsx'
+import { Button, NumberField, TextArea, TextField } from '../components/ui.jsx'
+import DateField from '../components/DateField.jsx'
+import { cleanCompete, DIVISIONS, POSING, DIETS, FEDERATION_MAX, FOOD_NOTES_MAX } from '../lib/coach-compete.js'
+import { todayISO } from '../lib/format.js'
 import { HourMinuteWheel } from '../components/DurationWheel.jsx'
 import '../coach.css'
 
@@ -36,8 +39,16 @@ const GOALS = [
   ['muscle', () => [t('Build muscle'), t('Volume and progression.')], 'arm'],
   ['general', () => [t('General fitness'), t('Balanced, sustainable training.')], 'heart'],
   ['fatloss', () => [t('Lose fat'), t('Keep strength while leaning out.')], 'flame'],
-  ['endurance', () => [t('Endurance'), t('Higher reps, less rest, cardio.')], 'figureRun']
+  ['endurance', () => [t('Endurance'), t('Higher reps, less rest, cardio.')], 'figureRun'],
+  // A competitor (lib/coach-compete.js): three more screens follow, about the show, the athlete
+  // and their food, and the Coach coaches diet and posing as well as the training.
+  ['compete', () => [t('Compete in bodybuilding'), t('Prep for a show: training, diet and posing.')], 'trophy']
 ]
+const DIVISION_TEXT = () => ({ classic: t('Classic Physique'), mensphysique: t('Men’s Physique'), bodybuilding: t('Bodybuilding'), other: t('Another division') })
+const POSING_TEXT = () => ({ never: t('Never practised'), practised: t('Practised a bit'), competed: t('Competed before') })
+const DIET_TEXT = () => ({ omni: t('I eat meat and fish'), egg: t('Vegetarian with eggs'), veg: t('Vegetarian'), vegan: t('Vegan') })
+// The competitor's screens, right after the goal.
+const COMPETE_STEPS = ['show', 'you', 'food']
 const EXPERIENCE = [
   ['new', () => [t('New to lifting'), t('First months in the gym.')], 'sparkles'],
   ['returning', () => [t('Coming back after a break'), t('You know the movements; the numbers need rebuilding.')], 'reset'],
@@ -71,16 +82,20 @@ export default function CoachIntake() {
   // changed and CONSENT_VERSION moved) reads the new terms and goes back to the Coach. Without
   // this the redirect from the chat replayed all seven questions and ended in a new plan request.
   const [reconsentOnly] = useState(() => !editing && !hasConsent(S) && !!S.coach?.profile)
-  const STEPS = reconsentOnly ? ['consent'] : [...(needConsent ? ['consent'] : []), 'goal', 'experience', 'days', 'length', 'equipment', 'limits', 'extras']
   const [step, setStep] = useState(0)
   const [busy, setBusy] = useState(false)
   const [p, setP] = useState(() => ({
     goal: null, experience: null, daysPerWeek: 3, preferredDays: defaultTrainingDays(3),
     // A home gym already set up under Settings → Equipment is the best first guess here.
     sessionMin: 60, equipment: (activeProfile(S)?.equipment || []).filter(e => EQUIPMENT.includes(e)), limitations: '', likes: '', dislikes: '', notes: '',
-    ...(S.coach?.profile || {})
+    ...(S.coach?.profile || {}),
+    // The weight starts from the last weigh-in, in the profile's unit.
+    compete: { weight: S.bodyweight?.at?.(-1)?.w ?? null, ...(S.coach?.profile?.compete || {}) },
   }))
   const set = patch => setP(v => ({ ...v, ...patch }))
+  const setC = patch => setP(v => ({ ...v, compete: { ...(v.compete || {}), ...patch } }))
+  const c = p.compete || {}
+  const STEPS = reconsentOnly ? ['consent'] : [...(needConsent ? ['consent'] : []), 'goal', ...(p.goal === 'compete' ? COMPETE_STEPS : []), 'experience', 'days', 'length', 'equipment', 'limits', 'extras']
 
   const gate = useCoachGate()
   useEffect(() => { if (gate.known && !gate.ok) nav('/home', { replace: true }) }, [gate.known, gate.ok])
@@ -88,7 +103,9 @@ export default function CoachIntake() {
 
   const key = STEPS[step]
   const last = step === STEPS.length - 1
-  const canNext = key === 'goal' ? !!p.goal : key === 'experience' ? !!p.experience : key === 'length' ? p.sessionMin >= 10 : true
+  const cc = cleanCompete(c)
+  const canNext = key === 'goal' ? !!p.goal : key === 'experience' ? !!p.experience : key === 'length' ? p.sessionMin >= 10
+    : key === 'show' ? !!cc.division : key === 'you' ? cc.heightCm != null && cc.weight != null : true
   const optional = ['equipment', 'limits', 'extras'].includes(key)
 
   const next = () => (last ? finish() : setStep(step + 1))
@@ -109,7 +126,8 @@ export default function CoachIntake() {
   const finish = async () => {
     // `??`, not `||`: only a missing answer takes the default. Nought is an answer, and the clamp
     // turns it into one day like every other count below the floor.
-    const profile = { ...p, daysPerWeek: Math.min(7, Math.max(1, p.daysPerWeek ?? 3)) }
+    const { compete, ...rest } = p
+    const profile = { ...rest, daysPerWeek: Math.min(7, Math.max(1, p.daysPerWeek ?? 3)), ...(p.goal === 'compete' ? { compete: cleanCompete(compete) } : {}) }
     update(s => {
       const c = (s.coach = s.coach || emptyCoach())
       c.profile = profile
@@ -169,6 +187,55 @@ export default function CoachIntake() {
         <div className="ob-choices">
           {GOALS.map(([v, text, icon]) => { const [title, sub] = text(); return <Choice key={v} on={p.goal === v} icon={icon} title={title} sub={sub} onClick={() => set({ goal: v })} /> })}
         </div>
+      </>}
+
+      {key === 'show' && <>
+        <div className="ob-eyebrow">{t('The show')}</div>
+        <h1 className="ob-h">{t('What are you competing in?')}</h1>
+        <p className="ob-p">{t('Your division and federation decide the poses, the judging and the weight limits the Coach plans around.')}</p>
+        <div className="ob-choices">
+          {DIVISIONS.map(v => <Choice key={v} on={c.division === v} icon={v === 'classic' ? 'trophy' : v === 'mensphysique' ? 'person' : v === 'bodybuilding' ? 'arm' : 'medal'} title={DIVISION_TEXT()[v]} onClick={() => setC({ division: v })} />)}
+        </div>
+        <div className="ob-sub">{t('Federation (optional)')}</div>
+        <div className="ob-field"><TextField value={c.federation || ''} maxLength={FEDERATION_MAX} onChange={e => setC({ federation: e.target.value })} placeholder={t('e.g. a natural federation near you')} aria-label={t('Federation (optional)')} /></div>
+        <div className="ob-sub">{t('Show date')}</div>
+        <div className="ob-field row" style={{ gap: 8, alignItems: 'center' }}>
+          <DateField value={c.showDate || ''} min={todayISO()} onChange={v => setC({ showDate: v || null })} label={t('Show date')} />
+          <button type="button" className={'chip' + (!c.showDate ? ' on' : '')} onClick={() => setC({ showDate: null })}>{t('No date yet')}</button>
+        </div>
+        <div className="ob-sub">{t('Posing')}</div>
+        <div className="ob-chips">
+          {POSING.map(v => <button key={v} className={'chip' + (c.posing === v ? ' on' : '')} onClick={() => setC({ posing: v })}>{POSING_TEXT()[v]}</button>)}
+        </div>
+      </>}
+
+      {key === 'you' && <>
+        <div className="ob-eyebrow">{t('You')}</div>
+        <h1 className="ob-h">{t('Where are you now?')}</h1>
+        <p className="ob-p">{t('Height and weight set your division limits and your starting calories. The rest sharpens the plan.')}</p>
+        <div className="measure-form ob-stats">
+          {[['heightCm', t('Height'), 'cm'], ['weight', t('Body weight'), S.unit === 'lb' ? 'lb' : 'kg'], ['age', t('Age'), ''], ['trainingYears', t('Years training'), ''], ['bodyFat', t('Body fat, if you know it'), '%']].map(([k, label, unit]) =>
+            <label className="measure-field" key={k}>
+              <span>{label}</span>
+              <span className="measure-input"><NumberField nullable value={c[k] ?? null} onChange={v => setC({ [k]: v })} aria-label={label} />{unit && <i>{unit}</i>}</span>
+            </label>)}
+        </div>
+      </>}
+
+      {key === 'food' && <>
+        <div className="ob-eyebrow">{t('Food')}</div>
+        <h1 className="ob-h">{t('How do you eat?')}</h1>
+        <p className="ob-p">{t('The Coach builds your calories and macros around food you actually eat.')}</p>
+        <div className="ob-choices">
+          {DIETS.map(v => <Choice key={v} on={c.diet === v} icon="apple" title={DIET_TEXT()[v]} onClick={() => setC({ diet: v })} />)}
+        </div>
+        <div className="ob-sub">{t('Meals a day')}</div>
+        <div className="ob-days">
+          {[2, 3, 4, 5, 6].map(n => <button key={n} className={'ob-day' + (c.meals === n ? ' on' : '')} aria-pressed={c.meals === n} onClick={() => setC({ meals: n })}>{n}</button>)}
+        </div>
+        <div className="ob-sub">{t('Anything about your food (optional)')}</div>
+        <div className="ob-field"><TextArea rows={3} maxLength={FOOD_NOTES_MAX} value={c.foodNotes || ''} onChange={e => setC({ foodNotes: e.target.value })}
+          placeholder={t('e.g. “dal and rice most days, tight budget, no supplements yet”')} /></div>
       </>}
 
       {key === 'experience' && <>
