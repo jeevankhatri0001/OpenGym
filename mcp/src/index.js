@@ -7,6 +7,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { TOOLS } from './tools.js'
 import { WRITE_TOOLS } from './write-tools.js'
+import { NUTRITION_TOOLS, NUTRITION_WRITE_TOOLS } from './nutrition-tools.js'
 import { init, getUser } from './state.js'
 
 const server = new McpServer({
@@ -27,14 +28,14 @@ try {
   // env and restarting.
 }
 
-for (const t of [...TOOLS, ...WRITE_TOOLS]) {
+for (const t of [...TOOLS, ...NUTRITION_TOOLS, ...WRITE_TOOLS, ...NUTRITION_WRITE_TOOLS]) {
   server.tool(
     t.name,
     t.description,
     t.schema,
     async (params) => {
       try {
-        // log_workout talks to the server, so a handler may answer with a promise.
+        // log_workout and log_food talk to the server, so a handler may answer with a promise.
         const result = await t.handler(params || {})
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] }
       } catch (err) {

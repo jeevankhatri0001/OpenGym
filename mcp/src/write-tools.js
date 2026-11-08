@@ -26,10 +26,26 @@ const WINDOW_MS = 60 * 60000
 let saves = []
 export const _resetWriteWindow = () => { saves = [] }
 
-function fail(code, message) {
+export function fail(code, message) {
   const err = new Error(message)
   err.code = code
   return err
+}
+
+// The token must be for the profile this server reads, or a write would land in someone else's
+// history. Shared by every write tool (log_workout, nutrition-tools.js log_food).
+export async function assertProfile(cfg, opts) {
+  const me = await apiFetch(cfg, '/api/me', opts)
+  const uid = me.body?.user?.id
+  // A guard that cannot read whose token this is refuses rather than steps aside.
+  if (typeof uid !== 'string' || !uid) throw fail('EAPI', 'the openGym server did not say which profile OPENGYM_TOKEN belongs to (GET /api/me); nothing was saved')
+  const local = localUid()
+  if (local && local !== uid) {
+    // The ids go to the operator on stderr, not into the model's context (state.js ambiguousUid).
+    console.error(`[opengym-mcp] OPENGYM_TOKEN is for profile ${uid}, this server reads ${local}`)
+    throw fail('EPROFILE', 'OPENGYM_TOKEN belongs to another profile than the one this server reads: pair again from the right profile, or set OPENGYM_UID to match (the ids are on the server\'s stderr)')
+  }
+  return uid
 }
 
 // The tool's snake_case parameters as the lib's description.
@@ -138,16 +154,7 @@ export const logWorkout = {
     }
     const input = inputOf({ ...params, date: params.date || localIso(new Date(now)) })
 
-    const me = await apiFetch(cfg, '/api/me', opts)
-    const uid = me.body?.user?.id
-    // A guard that cannot read whose token this is refuses rather than steps aside.
-    if (typeof uid !== 'string' || !uid) throw fail('EAPI', 'the openGym server did not say which profile OPENGYM_TOKEN belongs to (GET /api/me); nothing was saved')
-    const local = localUid()
-    if (local && local !== uid) {
-      // The ids go to the operator on stderr, not into the model's context (state.js ambiguousUid).
-      console.error(`[opengym-mcp] OPENGYM_TOKEN is for profile ${uid}, this server reads ${local}`)
-      throw fail('EPROFILE', 'OPENGYM_TOKEN belongs to another profile than the one this server reads: pair again from the right profile, or set OPENGYM_UID to match (the ids are on the server\'s stderr)')
-    }
+    await assertProfile(cfg, opts)
 
     let got = await apiFetch(cfg, '/api/data', opts)
     // A description without a unit is in the profile's, as the profile was when first read: a

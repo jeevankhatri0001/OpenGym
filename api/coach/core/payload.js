@@ -13,6 +13,7 @@
 import { glyphStr } from './glyphs.js';
 import { LIBRARY, LIB_BY_ID, libraryHas, libraryName, librarySlice, swapSlice, isStretch, MAX_LIBRARY, ownsNoDumbbells } from './library.js';
 import { muscleLoad, gymOf, challengesOf } from './context.js';
+import { nutritionOut } from './nutrition.js';
 
 export const CONTRACT = 1;
 // Bounds from FR-22. A review reads a training block, not a training career: more history
@@ -760,6 +761,13 @@ export function build(S, opts = {}) {
       // revision of a plan that does not exist — refine.md would be reading `previous: null`.
       p.userNote = String(opts.refine).slice(0, MAX_NOTE_CHARS);
     }
+  }
+  // What was logged eating, the last two weeks as daily totals against the targets (core/
+  // nutrition.js): for a review and a question, where recovery and progress are read. Only with
+  // the Nutrition module on and a consent that named nutrition.
+  if (opts.kind === 'review' || opts.kind === 'ask') {
+    const nutrition = nutritionOut(S, p.meta.today);
+    if (nutrition) p.nutrition = nutrition;
   }
   if (opts.kind !== 'debrief' && opts.kind !== 'adapt') {
     const said = conversation(coach, [opts.note, opts.refine]);
