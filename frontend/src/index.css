@@ -3307,3 +3307,10 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
   .kpis .tile{padding:10px 11px}
   .kpis .tile .v{font-size:var(--fs-title3)}
 }
+
+/* The nutrition coach (components/NutritionCoach.jsx): a card under the day's totals and its sheet. */
+.nut-coach{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.nut-coach .btn{align-self:flex-start}
+.nut-coach-tip{display:flex;gap:8px;align-items:flex-start;font-size:var(--fs-subhead);line-height:1.35}
+.nut-coach-tip .ic,.nut-coach-tip svg{flex:none;width:18px;height:18px;margin-top:1px;color:var(--acc)}
+.nut-coach-sheet .nut-coach-tip{margin-bottom:10px}

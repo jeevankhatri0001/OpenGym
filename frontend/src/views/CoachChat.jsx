@@ -55,6 +55,17 @@ export default function CoachChat() {
   const openSheet = useUI(s => s.openSheet)
   const { job, pending, cap, loading, lastError, last, refresh, maxMessageLen } = useCoachStatus(true)
   const [text, setText] = useState('')
+  // /coach?ask=… (the nutrition coach's Ask the Coach): the question goes into the message box,
+  // for the person to read and send. Never sent by itself: a Coach run is theirs to spend.
+  // Read off the hash (#/coach?ask=…) once, then the address goes back to plain #/coach.
+  useEffect(() => {
+    const hash = (typeof window !== 'undefined' && window.location?.hash) || ''
+    const ask = new URLSearchParams(hash.split('?')[1] || '').get('ask')
+    if (!ask) return
+    setText(ask.slice(0, maxMessageLen || 2000))
+    setExpanded(true)
+    nav('/coach', { replace: true })
+  }, [])
   // The message box opened into a tall editor (components/ChatInput.jsx); closed again on send.
   const [expanded, setExpanded] = useState(false)
   const [busy, setBusy] = useState(false)

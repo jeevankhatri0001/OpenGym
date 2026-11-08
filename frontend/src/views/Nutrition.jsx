@@ -17,6 +17,7 @@ import { BarRow } from '../components/StatBars.jsx'
 import { Button, NumberField, SearchField, Section, Segmented, Switch, TextField } from '../components/ui.jsx'
 import { confirmSheet } from '../sheets.jsx'
 import NutritionTargetsPage from './NutritionTargets.jsx'
+import { NutritionCoachCard, coachToast } from '../components/NutritionCoach.jsx'
 
 // Nutrition (docs/NUTRITION.md): Today with a date switcher (/nutrition?d=YYYY-MM-DD), the Foods
 // library (/nutrition/foods) and History (/nutrition/history). The numbers are lib/nutrition.js's;
@@ -70,7 +71,8 @@ function AddFood({ d, meal: meal0, close }) {
     if (!e) { toast(t('Enter an amount in grams')); return }
     update(s => { s.foodLog = [...(s.foodLog || []), e] })
     close()
-    toast(t('{0} added', e.name))
+    // The coach's check-in (components/NutritionCoach.jsx): the added food plus its first tip.
+    coachToast(useStore.getState().S, e)
   }
 
   if (food) {
@@ -336,6 +338,8 @@ export default function Nutrition() {
       </div>
       <TargetBars totals={totals} targets={targets} />
     </div>
+
+    <NutritionCoachCard d={d} />
 
     {MEALS.map(m => {
       const list = byMeal[m]
