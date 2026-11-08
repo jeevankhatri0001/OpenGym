@@ -16,6 +16,7 @@ import GramsInput from '../components/GramsInput.jsx'
 import { BarRow } from '../components/StatBars.jsx'
 import { Button, NumberField, SearchField, Section, Segmented, Switch, TextField } from '../components/ui.jsx'
 import { confirmSheet } from '../sheets.jsx'
+import NutritionTargetsPage from './NutritionTargets.jsx'
 
 // Nutrition (docs/NUTRITION.md): Today with a date switcher (/nutrition?d=YYYY-MM-DD), the Foods
 // library (/nutrition/foods) and History (/nutrition/history). The numbers are lib/nutrition.js's;
@@ -245,11 +246,23 @@ const toggleFavourite = food => update(s => { s.foods = (s.foods || []).map(f =>
 
 // ------------------------------------------------------------------ Today --
 
-function Header({ title, sub, back = '/home', backLabel, children }) {
+// The targets right here, without leaving the Nutrition tab: the same rows as Settings →
+// Nutrition targets (views/NutritionTargets.jsx).
+export function targetsSheet() {
+  return openSheet(close => <>
+    <h3>{t('Daily targets')}</h3>
+    <NutritionTargetsPage />
+    <div style={{ height: 10 }} />
+    <Button variant="primary" onClick={close}>{t('Done')}</Button>
+  </>)
+}
+
+// `back`: the page one level up; Today is a tab of its own (components/TabBar.jsx) and has none.
+function Header({ title, sub, back, backLabel, children }) {
   const nav = useNavigate()
   return <div className="hdr">
-    <button className="iconbtn" data-back={back} onClick={() => nav(back)} aria-label={backLabel ?? t('Back')}><Icon name="chevronLeft" /></button>
-    <div style={{ flex: 1, marginInlineStart: 12 }}><h1>{title}</h1>{sub && <div className="sub">{sub}</div>}</div>
+    {back && <button className="iconbtn" data-back={back} onClick={() => nav(back)} aria-label={backLabel ?? t('Back')}><Icon name="chevronLeft" /></button>}
+    <div style={{ flex: 1, marginInlineStart: back ? 12 : 0 }}><h1>{title}</h1>{sub && <div className="sub">{sub}</div>}</div>
     {children && <div className="hdr-actions">{children}</div>}
   </div>
 }
@@ -299,10 +312,10 @@ export default function Nutrition() {
   }, [params, setParams, d])
 
   return <div className="narrow">
-    <Header title={t('Nutrition')} backLabel={t('Home')}>
+    <Header title={t('Nutrition')}>
       <button className="iconbtn" onClick={() => nav('/nutrition/history')} aria-label={t('History')}><Icon name="chartLine" /></button>
       <button className="iconbtn" onClick={() => nav('/nutrition/foods')} aria-label={t('Foods')}><Icon name="list" /></button>
-      <button className="iconbtn" onClick={() => nav('/settings/nutrition')} aria-label={t('Daily targets')}><Icon name="target" /></button>
+      <button className="iconbtn" onClick={targetsSheet} aria-label={t('Daily targets')}><Icon name="target" /></button>
     </Header>
 
     <div className="nut-day row between">

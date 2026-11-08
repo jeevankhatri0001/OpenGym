@@ -226,6 +226,17 @@ describe('history and targets', () => {
     expect(screen.querySelectorAll('.sect-b .lrow')).toHaveLength(2)
   })
 
+  it('the target button opens the targets right on the Nutrition tab, as a sheet', () => {
+    seed()
+    const screen = render(<Nutrition />)
+    expect(screen.querySelector('.hdr [data-back]')).toBe(null)          // a tab of its own: no back button
+    act(() => { screen.querySelector('[aria-label="Daily targets"]').click() })
+    const sheet = topSheet()
+    setValue(sheet.querySelector('input[aria-label="Calories"]'), '2400')
+    expect(S().nutritionTargets.kcal).toBe(2400)
+    expect(screen.textContent).toMatch(/2,?400/)
+  })
+
   it('targets are set one at a time, and an empty field goes back to the default', () => {
     seed()
     const page = render(<NutritionTargetsPage />, '/settings/nutrition')
